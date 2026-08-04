@@ -1,0 +1,47 @@
+# Sujet fourni localement : ne jamais publier dans le dépôt.
+fr.subject.pdf
+
+# Secrets et configurations locales
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# JavaScript / TypeScript
+node_modules/
+frontend/dist/
+coverage/
+.vite/
+playwright-report/
+test-results/
+
+# Données et médias locaux
+data/
+uploads/
+minio-data/
+postgres-data/
+valkey-data/
+
+# IDE et système
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Logs et fichiers temporaires
+*.log
+tmp/
+temp/
