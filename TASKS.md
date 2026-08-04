@@ -386,51 +386,51 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [x] Choisir Podman et Podman Compose pour l'environnement de développement rootless.
 - [x] Choisir GNU Make comme interface unique d'automatisation du projet.
 - [x] Définir l'arborescence cible du backend, du frontend, des scripts SQL et des tests.
-- [ ] Documenter ces décisions dans le README.
+- [x] Documenter ces décisions dans le README.
 
 ### 0.2 Préparer le dépôt
 
-- [ ] Créer un `.gitignore` adapté à la stack.
-- [ ] Créer un `.env.example` sans secret avec toutes les variables attendues.
-- [ ] Exclure `.env`, les clés, les fichiers temporaires et les médias locaux de Git.
+- [x] Créer un `.gitignore` adapté à la stack.
+- [x] Créer un `.env.example` sans secret avec toutes les variables attendues.
+- [x] Exclure `.env`, les clés, les fichiers temporaires et les médias locaux de Git.
 - [ ] Ajouter les commandes d'installation, de migration, de seed, de test et de lancement.
-- [ ] Fixer les versions des dépendances.
-- [ ] Choisir au scaffold des versions majeures stables et compatibles, puis verrouiller toutes les versions exactes dans les lockfiles.
-- [ ] Épingler les images Podman par version et digest pour la soutenance ; interdire le tag `latest`.
+- [x] Fixer les versions des dépendances.
+- [x] Choisir au scaffold des versions majeures stables et compatibles, puis verrouiller toutes les versions exactes dans les lockfiles.
+- [x] Épingler les images Podman par version et digest pour la soutenance ; interdire le tag `latest`.
 - [ ] Tester explicitement toute mise à jour avant de modifier une version verrouillée.
-- [ ] Initialiser le backend Flask avec un `pyproject.toml` et ses dépendances.
-- [ ] Initialiser le frontend React/TypeScript avec Vite et Tailwind CSS.
-- [ ] Configurer Ruff côté Python.
-- [ ] Configurer ESLint et Prettier côté React/TypeScript.
+- [x] Initialiser le backend Flask avec un `pyproject.toml` et ses dépendances.
+- [x] Initialiser le frontend React/TypeScript avec Vite et Tailwind CSS.
+- [x] Configurer Ruff côté Python.
+- [x] Configurer ESLint et Prettier côté React/TypeScript.
 - [ ] Configurer pytest, Vitest, Testing Library et Playwright.
-- [ ] Créer `compose.yml` avec Nginx, Flask, PostgreSQL, Valkey, MinIO et Mailpit.
-- [ ] Ajouter Valkey à `compose.yml`, sans exposition publique de son port.
-- [ ] Configurer Valkey avec authentification locale, limites mémoire, politique d'éviction adaptée et healthcheck.
-- [ ] Ajouter Nginx à `compose.yml` comme seul point d'entrée HTTP exposé.
-- [ ] Configurer Nginx pour servir le build React et le fallback des routes SPA.
-- [ ] Configurer les proxys `/api` et `/socket.io`, y compris les en-têtes d'upgrade WebSocket et les timeouts.
-- [ ] Ajouter MinIO à `compose.yml` avec un volume persistant compatible rootless.
-- [ ] Ajouter une vérification de santé MinIO et garantir que l'application attend sa disponibilité.
-- [ ] Créer automatiquement les buckets privés requis sans rendre les objets publics.
-- [ ] Ajouter au `Makefile` des cibles sûres pour initialiser et vérifier le stockage d'objets.
-- [ ] Configurer les volumes PostgreSQL persistants avec des droits compatibles avec Podman rootless.
-- [ ] Configurer le réseau Compose et utiliser les noms des services pour les communications internes.
-- [ ] Exposer uniquement les ports nécessaires à l'hôte.
+- [x] Créer `compose.yml` avec Nginx, Flask, PostgreSQL, Valkey, MinIO et Mailpit.
+- [x] Ajouter Valkey à `compose.yml`, sans exposition publique de son port.
+- [x] Configurer Valkey avec authentification locale, limites mémoire, politique d'éviction adaptée et healthcheck.
+- [x] Ajouter Nginx à `compose.yml` comme seul point d'entrée HTTP exposé.
+- [x] Configurer Nginx pour servir le build React et le fallback des routes SPA.
+- [x] Configurer les proxys `/api` et `/socket.io`, y compris les en-têtes d'upgrade WebSocket et les timeouts.
+- [x] Ajouter MinIO à `compose.yml` avec un volume persistant compatible rootless.
+- [x] Ajouter une vérification de santé MinIO et garantir que l'application attend sa disponibilité.
+- [x] Créer automatiquement les buckets privés requis sans rendre les objets publics.
+- [x] Ajouter au `Makefile` des cibles sûres pour initialiser et vérifier le stockage d'objets.
+- [x] Configurer les volumes PostgreSQL persistants avec des droits compatibles avec Podman rootless.
+- [x] Configurer le réseau Compose et utiliser les noms des services pour les communications internes.
+- [x] Exposer uniquement les ports nécessaires à l'hôte.
 - [ ] Vérifier le fonctionnement de Flask-SocketIO et des WebSockets à travers le réseau Podman.
-- [ ] Configurer le choix validé Gunicorn/gevent avec exactement un worker WebSocket pour la première version.
+- [x] Configurer le choix validé Gunicorn/gevent avec exactement un worker WebSocket pour la première version.
 - [ ] Configurer Flask-SocketIO avec Valkey comme bus Pub/Sub même en mono-worker, puis tester la diffusion.
 - [ ] Documenter que le multi-instance exige plusieurs serveurs mono-worker derrière Nginx avec affinité, jamais `gunicorn -w N`.
 - [ ] Ajouter des healthchecks distincts pour Nginx/HTTP, PostgreSQL, Valkey, MinIO et la disponibilité du canal temps réel.
 - [ ] Tester et documenter `podman compose`, puis vérifier si `podman-compose` doit aussi être supporté.
-- [ ] Créer un `Makefile` auto-documenté avec une cible `help` utilisée par défaut.
-- [ ] Ajouter `make setup` pour vérifier les prérequis et préparer `.env` sans écraser un fichier existant.
+- [x] Créer un `Makefile` auto-documenté avec une cible `help` utilisée par défaut.
+- [x] Ajouter `make setup` pour vérifier les prérequis et préparer `.env` sans écraser un fichier existant.
 - [ ] Ajouter `make config-check` pour refuser le démarrage si une variable obligatoire manque ou conserve une valeur non sûre.
-- [ ] Ajouter `make build` pour construire toutes les images avec les configurations requises.
+- [x] Ajouter `make build` pour construire toutes les images avec les configurations requises.
 - [ ] Ajouter `make up` pour démarrer l'application et ses dépendances.
 - [ ] Ajouter `make start` comme parcours complet de construction, migration puis démarrage.
 - [ ] Ajouter `make down` et `make restart` pour gérer proprement les services.
 - [ ] Ajouter `make logs` et des variantes ciblées pour diagnostiquer les services.
-- [ ] Ajouter `make ps` et `make health` pour vérifier l'état de l'environnement.
+- [x] Ajouter `make ps` et `make health` pour vérifier l'état de l'environnement.
 - [ ] Ajouter `make migrate` pour appliquer les fichiers SQL dans l'ordre.
 - [ ] Ajouter `make seed` pour générer les 500 profils de démonstration.
 - [ ] Ajouter `make test`, `make test-backend`, `make test-frontend` et `make test-e2e`.

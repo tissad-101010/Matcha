@@ -146,9 +146,10 @@ Les avatars seront produits localement avec Pillow. Quelques comptes principaux 
 utiliser des portraits entièrement synthétiques. Aucun profil ne devra représenter une
 personne réelle sans autorisation.
 
-## Lancement prévu
+## Lancement local
 
-Une fois l'implémentation disponible, le parcours principal sera :
+Podman rootless, Podman Compose, Python 3.12, Node.js 20 et GNU Make sont requis. Valkey
+nécessite aussi `vm.overcommit_memory=1` sur l'hôte. Le parcours principal est :
 
 ```bash
 make setup
@@ -156,19 +157,25 @@ make start
 make health
 ```
 
-Les commandes prévues incluent également :
+Le `Makefile` crée un `.env` privé avec des secrets locaux aléatoires, installe les
+dépendances, construit les images et n'expose que `http://127.0.0.1:8080`. Les commandes
+actuellement disponibles sont :
 
 ```bash
-make migrate
-make seed
+make help
+make config
+make build
 make test
 make lint
 make check
+make ps
+make logs
+make stop
 make down
 ```
 
-Ces commandes sont documentées comme **prévues** tant que le Makefile et les services ne sont
-pas encore implémentés.
+Les cibles `make migrate` et `make seed` seront ajoutées avec le schéma SQL et le générateur
+des données de démonstration lors de la prochaine étape de construction.
 
 ## Documentation du projet
 
