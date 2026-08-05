@@ -106,9 +106,12 @@ services:
       S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
+      SMTP_USERNAME: ""
+      SMTP_PASSWORD: ""
       SMTP_USE_TLS: "false"
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
       SMTP_FROM_NAME: ${SMTP_FROM_NAME}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
     depends_on:
       - postgres
       - valkey

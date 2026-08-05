@@ -1,6 +1,7 @@
 """Password policy and Argon2id hashing in one auditable module."""
 
 import re
+import unicodedata
 from pathlib import Path
 
 from argon2 import PasswordHasher
@@ -27,7 +28,8 @@ def password_error(password: str) -> str | None:
         return "Le mot de passe doit contenir un caractère spécial."
 
     common_words = set(COMMON_WORDS_PATH.read_text(encoding="utf-8").splitlines())
-    normalized_words = WORD_PATTERN.findall(password.casefold())
+    comparable_password = unicodedata.normalize("NFKC", password).casefold()
+    normalized_words = WORD_PATTERN.findall(comparable_password)
     if any(common_word in word for word in normalized_words for common_word in common_words):
         return "Le mot de passe contient un mot anglais trop courant."
     return None

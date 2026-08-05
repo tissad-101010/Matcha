@@ -441,8 +441,8 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [ ] Permettre de surcharger les variables utiles sans coder de secret dans le `Makefile`.
 - [ ] Vérifier toutes les cibles depuis un clone propre et documenter leur usage dans le README.
 - [ ] Préparer les environnements développement et test.
-- [ ] Créer une configuration SMTP générique avec `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_USE_TLS`, `SMTP_FROM_EMAIL` et `SMTP_FROM_NAME`.
-- [ ] Pointer la configuration locale vers Mailpit et permettre l'activation optionnelle de Brevo sans modifier le code.
+- [x] Créer une configuration SMTP générique avec `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_USE_TLS`, `SMTP_FROM_EMAIL` et `SMTP_FROM_NAME`.
+- [x] Pointer la configuration locale vers Mailpit et permettre l'activation optionnelle de Brevo sans modifier le code.
 - [ ] Refuser le démarrage en mode production si les paramètres SMTP obligatoires ou TLS sont invalides.
 - [ ] Ajouter une gestion centralisée des erreurs et des logs sans données sensibles.
 
@@ -639,18 +639,18 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 ### 3.1 Inscription
 
 - [ ] Créer le formulaire avec les cinq champs minimaux du sujet — e-mail, username, nom, prénom et mot de passe — plus la date de naissance nécessaire à la règle 18+.
-- [ ] Refuser côté serveur toute date de naissance indiquant moins de 18 ans avant insertion du compte.
-- [ ] Valider le format et l'unicité de l'e-mail et du username.
-- [ ] Imposer une politique de mot de passe sécurisé.
-- [ ] Refuser les mots anglais courants comme mot de passe.
-- [ ] Ajouter le fichier local de mots anglais courants avec sa source, sa version, sa licence et son checksum documentés.
-- [ ] Comparer de manière insensible à la casse et après normalisation Unicode.
-- [ ] Tester des mots anglais courants, variantes de casse et entrées Unicode sans journaliser le mot de passe.
-- [ ] Hacher tous les mots de passe avec le choix validé Argon2id via `argon2-cffi`.
-- [ ] Ne jamais stocker ni journaliser le mot de passe en clair.
-- [ ] Créer le compte inactif et un jeton d'activation aléatoire, expirant et à usage unique.
-- [ ] Envoyer l'e-mail contenant le lien unique d'activation.
-- [ ] Envoyer les e-mails via l'interface SMTP générique, avec timeout, gestion d'erreur et sans journaliser les identifiants.
+- [x] Refuser côté serveur toute date de naissance indiquant moins de 18 ans avant insertion du compte.
+- [x] Valider le format et l'unicité de l'e-mail et du username.
+- [x] Imposer une politique de mot de passe sécurisé.
+- [x] Refuser les mots anglais courants comme mot de passe.
+- [x] Ajouter le fichier local de mots anglais courants avec sa source, sa version, sa licence et son checksum documentés.
+- [x] Comparer de manière insensible à la casse et après normalisation Unicode.
+- [x] Tester des mots anglais courants, variantes de casse et entrées Unicode sans journaliser le mot de passe.
+- [x] Hacher tous les mots de passe avec le choix validé Argon2id via `argon2-cffi`.
+- [x] Ne jamais stocker ni journaliser le mot de passe en clair.
+- [x] Créer le compte inactif et un jeton d'activation aléatoire, expirant et à usage unique.
+- [x] Envoyer l'e-mail contenant le lien unique d'activation.
+- [x] Envoyer les e-mails via l'interface SMTP générique, avec timeout, gestion d'erreur et sans journaliser les identifiants.
 - [ ] Ne jamais envoyer d'e-mail réel aux adresses fictives sous `example.test`.
 - [ ] Afficher un résultat neutre qui ne facilite pas l'énumération des comptes.
 
