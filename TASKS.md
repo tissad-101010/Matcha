@@ -638,7 +638,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 3.1 Inscription
 
-- [ ] Créer le formulaire avec les cinq champs minimaux du sujet — e-mail, username, nom, prénom et mot de passe — plus la date de naissance nécessaire à la règle 18+.
+- [x] Créer le formulaire avec les cinq champs minimaux du sujet — e-mail, username, nom, prénom et mot de passe — plus la date de naissance nécessaire à la règle 18+.
 - [x] Refuser côté serveur toute date de naissance indiquant moins de 18 ans avant insertion du compte.
 - [x] Valider le format et l'unicité de l'e-mail et du username.
 - [x] Imposer une politique de mot de passe sécurisé.
@@ -666,7 +666,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 3.3 Mot de passe oublié
 
-- [ ] Créer le formulaire de demande de réinitialisation.
+- [x] Créer le formulaire de demande de réinitialisation.
 - [x] Retourner le même message que l'e-mail existe ou non.
 - [x] Générer un jeton aléatoire, expirant et à usage unique.
 - [x] Envoyer le lien par e-mail.
