@@ -115,6 +115,8 @@ services:
       - minio
       - minio-init
       - mailpit
+    volumes:
+      - ./database/migrations:/app/database/migrations:ro
     networks:
       - internal
     restart: unless-stopped

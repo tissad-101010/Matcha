@@ -165,6 +165,8 @@ actuellement disponibles sont :
 make help
 make config
 make build
+make migrate
+make schema-check
 make test
 make lint
 make check
@@ -174,8 +176,11 @@ make stop
 make down
 ```
 
-Les cibles `make migrate` et `make seed` seront ajoutées avec le schéma SQL et le générateur
-des données de démonstration lors de la prochaine étape de construction.
+Les migrations SQL sont appliquées automatiquement avant le démarrage de Gunicorn et peuvent
+être rejouées sans effet avec `make migrate`. Leur checksum empêche la modification silencieuse
+d'un fichier déjà appliqué. `make schema-check` teste les invariants obligatoires dans une
+transaction annulée. La cible `make seed` sera ajoutée avec le générateur des données de
+démonstration lors de la prochaine étape de construction.
 
 ## Documentation du projet
 

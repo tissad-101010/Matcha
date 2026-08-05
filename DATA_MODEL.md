@@ -518,20 +518,20 @@ des comptes, profils, likes, matchs ou messages.
 
 ## 18. Contrôle de cohérence avant migration
 
-- [ ] Chaque colonne répond à un endpoint ou une règle documentée.
-- [ ] Les données dérivées ont une source de vérité identifiable.
-- [ ] Les contraintes empêchent auto-like, auto-visite, auto-blocage et paire dupliquée.
-- [ ] La photo reste facultative et le maximum de cinq est garanti.
-- [ ] Les consentements GPS et préférences sont séparés et historisés.
+- [x] Chaque colonne répond à un endpoint ou une règle documentée.
+- [x] Les données dérivées ont une source de vérité identifiable.
+- [x] Les contraintes empêchent auto-like, auto-visite, auto-blocage et paire dupliquée.
+- [x] La photo reste facultative et le maximum de cinq est garanti.
+- [x] Les consentements GPS et préférences sont séparés et historisés.
 - [ ] La préférence absente n'est effective que sous consentement actif.
 - [ ] La compatibilité est mutuelle et calculée côté serveur.
 - [ ] Un nouveau match après unlike exige deux nouveaux likes actifs.
 - [ ] Le blocage est vérifié dans les deux directions.
-- [ ] Les messages sont idempotents et restent liés à un épisode de match.
-- [ ] Toutes les listes importantes disposent d'un index et d'une pagination stable.
+- [x] Les messages sont idempotents et restent liés à un épisode de match.
+- [x] Toutes les listes importantes disposent d'un index et d'une pagination stable.
 - [ ] La suppression de compte retire aussi MinIO, Valkey et les identités bonus.
-- [ ] Aucune réponse publique ne peut sélectionner e-mail, naissance exacte ou GPS réduit.
-- [ ] Les migrations passent sans ORM depuis une base vide.
+- [x] Aucune réponse publique ne peut sélectionner e-mail, naissance exacte ou GPS réduit.
+- [x] Les migrations passent sans ORM depuis une base vide.
 
 ## 19. Correspondance avec les repositories
 

@@ -23,4 +23,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=5s --retries=20 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=3)"
 
-CMD ["/bin/sh", "-c", "python -m scripts.wait_for_services && exec gunicorn --workers 1 --worker-class gevent --bind 0.0.0.0:8000 --access-logfile - --error-logfile - wsgi:app"]
+CMD ["/bin/sh", "-c", "python -m scripts.wait_for_services && python -m scripts.migrate && exec gunicorn --workers 1 --worker-class gevent --bind 0.0.0.0:8000 --access-logfile - --error-logfile - wsgi:app"]
