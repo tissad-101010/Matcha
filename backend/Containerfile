@@ -1,0 +1,26 @@
+FROM docker.io/library/python@sha256:519591d6871b7bc437060736b9f7456b8731f1499a57e22e6c285135ae657bf7
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+COPY requirements.lock ./requirements.lock
+RUN python -m pip install --disable-pip-version-check --root-user-action=ignore --no-cache-dir --requirement requirements.lock
+
+COPY app ./app
+COPY scripts ./scripts
+COPY wsgi.py ./wsgi.py
+
+RUN useradd --create-home --uid 10001 matcha \
+    && chown -R matcha:matcha /app
+
+USER 10001
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=10s --timeout=5s --retries=20 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=3)"
+
+CMD ["/bin/sh", "-c", "python -m scripts.wait_for_services && python -m scripts.migrate && exec gunicorn --workers 1 --worker-class gevent --bind 0.0.0.0:8000 --access-logfile - --error-logfile - wsgi:app"]

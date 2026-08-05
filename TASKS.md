@@ -386,53 +386,53 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [x] Choisir Podman et Podman Compose pour l'environnement de développement rootless.
 - [x] Choisir GNU Make comme interface unique d'automatisation du projet.
 - [x] Définir l'arborescence cible du backend, du frontend, des scripts SQL et des tests.
-- [ ] Documenter ces décisions dans le README.
+- [x] Documenter ces décisions dans le README.
 
 ### 0.2 Préparer le dépôt
 
-- [ ] Créer un `.gitignore` adapté à la stack.
-- [ ] Créer un `.env.example` sans secret avec toutes les variables attendues.
-- [ ] Exclure `.env`, les clés, les fichiers temporaires et les médias locaux de Git.
-- [ ] Ajouter les commandes d'installation, de migration, de seed, de test et de lancement.
-- [ ] Fixer les versions des dépendances.
-- [ ] Choisir au scaffold des versions majeures stables et compatibles, puis verrouiller toutes les versions exactes dans les lockfiles.
-- [ ] Épingler les images Podman par version et digest pour la soutenance ; interdire le tag `latest`.
+- [x] Créer un `.gitignore` adapté à la stack.
+- [x] Créer un `.env.example` sans secret avec toutes les variables attendues.
+- [x] Exclure `.env`, les clés, les fichiers temporaires et les médias locaux de Git.
+- [x] Ajouter les commandes d'installation, de migration, de seed, de test et de lancement.
+- [x] Fixer les versions des dépendances.
+- [x] Choisir au scaffold des versions majeures stables et compatibles, puis verrouiller toutes les versions exactes dans les lockfiles.
+- [x] Épingler les images Podman par version et digest pour la soutenance ; interdire le tag `latest`.
 - [ ] Tester explicitement toute mise à jour avant de modifier une version verrouillée.
-- [ ] Initialiser le backend Flask avec un `pyproject.toml` et ses dépendances.
-- [ ] Initialiser le frontend React/TypeScript avec Vite et Tailwind CSS.
-- [ ] Configurer Ruff côté Python.
-- [ ] Configurer ESLint et Prettier côté React/TypeScript.
+- [x] Initialiser le backend Flask avec un `pyproject.toml` et ses dépendances.
+- [x] Initialiser le frontend React/TypeScript avec Vite et Tailwind CSS.
+- [x] Configurer Ruff côté Python.
+- [x] Configurer ESLint et Prettier côté React/TypeScript.
 - [ ] Configurer pytest, Vitest, Testing Library et Playwright.
-- [ ] Créer `compose.yml` avec Nginx, Flask, PostgreSQL, Valkey, MinIO et Mailpit.
-- [ ] Ajouter Valkey à `compose.yml`, sans exposition publique de son port.
-- [ ] Configurer Valkey avec authentification locale, limites mémoire, politique d'éviction adaptée et healthcheck.
-- [ ] Ajouter Nginx à `compose.yml` comme seul point d'entrée HTTP exposé.
-- [ ] Configurer Nginx pour servir le build React et le fallback des routes SPA.
-- [ ] Configurer les proxys `/api` et `/socket.io`, y compris les en-têtes d'upgrade WebSocket et les timeouts.
-- [ ] Ajouter MinIO à `compose.yml` avec un volume persistant compatible rootless.
-- [ ] Ajouter une vérification de santé MinIO et garantir que l'application attend sa disponibilité.
-- [ ] Créer automatiquement les buckets privés requis sans rendre les objets publics.
-- [ ] Ajouter au `Makefile` des cibles sûres pour initialiser et vérifier le stockage d'objets.
-- [ ] Configurer les volumes PostgreSQL persistants avec des droits compatibles avec Podman rootless.
-- [ ] Configurer le réseau Compose et utiliser les noms des services pour les communications internes.
-- [ ] Exposer uniquement les ports nécessaires à l'hôte.
+- [x] Créer `compose.yml` avec Nginx, Flask, PostgreSQL, Valkey, MinIO et Mailpit.
+- [x] Ajouter Valkey à `compose.yml`, sans exposition publique de son port.
+- [x] Configurer Valkey avec authentification locale, limites mémoire, politique d'éviction adaptée et healthcheck.
+- [x] Ajouter Nginx à `compose.yml` comme seul point d'entrée HTTP exposé.
+- [x] Configurer Nginx pour servir le build React et le fallback des routes SPA.
+- [x] Configurer les proxys `/api` et `/socket.io`, y compris les en-têtes d'upgrade WebSocket et les timeouts.
+- [x] Ajouter MinIO à `compose.yml` avec un volume persistant compatible rootless.
+- [x] Ajouter une vérification de santé MinIO et garantir que l'application attend sa disponibilité.
+- [x] Créer automatiquement les buckets privés requis sans rendre les objets publics.
+- [x] Ajouter au `Makefile` des cibles sûres pour initialiser et vérifier le stockage d'objets.
+- [x] Configurer les volumes PostgreSQL persistants avec des droits compatibles avec Podman rootless.
+- [x] Configurer le réseau Compose et utiliser les noms des services pour les communications internes.
+- [x] Exposer uniquement les ports nécessaires à l'hôte.
 - [ ] Vérifier le fonctionnement de Flask-SocketIO et des WebSockets à travers le réseau Podman.
-- [ ] Configurer le choix validé Gunicorn/gevent avec exactement un worker WebSocket pour la première version.
+- [x] Configurer le choix validé Gunicorn/gevent avec exactement un worker WebSocket pour la première version.
 - [ ] Configurer Flask-SocketIO avec Valkey comme bus Pub/Sub même en mono-worker, puis tester la diffusion.
 - [ ] Documenter que le multi-instance exige plusieurs serveurs mono-worker derrière Nginx avec affinité, jamais `gunicorn -w N`.
 - [ ] Ajouter des healthchecks distincts pour Nginx/HTTP, PostgreSQL, Valkey, MinIO et la disponibilité du canal temps réel.
 - [ ] Tester et documenter `podman compose`, puis vérifier si `podman-compose` doit aussi être supporté.
-- [ ] Créer un `Makefile` auto-documenté avec une cible `help` utilisée par défaut.
-- [ ] Ajouter `make setup` pour vérifier les prérequis et préparer `.env` sans écraser un fichier existant.
+- [x] Créer un `Makefile` auto-documenté avec une cible `help` utilisée par défaut.
+- [x] Ajouter `make setup` pour vérifier les prérequis et préparer `.env` sans écraser un fichier existant.
 - [ ] Ajouter `make config-check` pour refuser le démarrage si une variable obligatoire manque ou conserve une valeur non sûre.
-- [ ] Ajouter `make build` pour construire toutes les images avec les configurations requises.
+- [x] Ajouter `make build` pour construire toutes les images avec les configurations requises.
 - [ ] Ajouter `make up` pour démarrer l'application et ses dépendances.
 - [ ] Ajouter `make start` comme parcours complet de construction, migration puis démarrage.
 - [ ] Ajouter `make down` et `make restart` pour gérer proprement les services.
 - [ ] Ajouter `make logs` et des variantes ciblées pour diagnostiquer les services.
-- [ ] Ajouter `make ps` et `make health` pour vérifier l'état de l'environnement.
-- [ ] Ajouter `make migrate` pour appliquer les fichiers SQL dans l'ordre.
-- [ ] Ajouter `make seed` pour générer les 500 profils de démonstration.
+- [x] Ajouter `make ps` et `make health` pour vérifier l'état de l'environnement.
+- [x] Ajouter `make migrate` pour appliquer les fichiers SQL dans l'ordre.
+- [x] Ajouter `make seed` pour générer les 500 profils de démonstration.
 - [ ] Ajouter `make test`, `make test-backend`, `make test-frontend` et `make test-e2e`.
 - [ ] Ajouter `make lint`, `make format` et `make check` pour les contrôles avant rendu.
 - [ ] Ajouter `make shell-backend` et `make db-shell` pour le diagnostic local.
@@ -441,8 +441,8 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [ ] Permettre de surcharger les variables utiles sans coder de secret dans le `Makefile`.
 - [ ] Vérifier toutes les cibles depuis un clone propre et documenter leur usage dans le README.
 - [ ] Préparer les environnements développement et test.
-- [ ] Créer une configuration SMTP générique avec `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_USE_TLS`, `SMTP_FROM_EMAIL` et `SMTP_FROM_NAME`.
-- [ ] Pointer la configuration locale vers Mailpit et permettre l'activation optionnelle de Brevo sans modifier le code.
+- [x] Créer une configuration SMTP générique avec `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_USE_TLS`, `SMTP_FROM_EMAIL` et `SMTP_FROM_NAME`.
+- [x] Pointer la configuration locale vers Mailpit et permettre l'activation optionnelle de Brevo sans modifier le code.
 - [ ] Refuser le démarrage en mode production si les paramètres SMTP obligatoires ou TLS sont invalides.
 - [ ] Ajouter une gestion centralisée des erreurs et des logs sans données sensibles.
 
@@ -639,29 +639,29 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 ### 3.1 Inscription
 
 - [ ] Créer le formulaire avec les cinq champs minimaux du sujet — e-mail, username, nom, prénom et mot de passe — plus la date de naissance nécessaire à la règle 18+.
-- [ ] Refuser côté serveur toute date de naissance indiquant moins de 18 ans avant insertion du compte.
-- [ ] Valider le format et l'unicité de l'e-mail et du username.
-- [ ] Imposer une politique de mot de passe sécurisé.
-- [ ] Refuser les mots anglais courants comme mot de passe.
-- [ ] Ajouter le fichier local de mots anglais courants avec sa source, sa version, sa licence et son checksum documentés.
-- [ ] Comparer de manière insensible à la casse et après normalisation Unicode.
-- [ ] Tester des mots anglais courants, variantes de casse et entrées Unicode sans journaliser le mot de passe.
-- [ ] Hacher tous les mots de passe avec le choix validé Argon2id via `argon2-cffi`.
-- [ ] Ne jamais stocker ni journaliser le mot de passe en clair.
-- [ ] Créer le compte inactif et un jeton d'activation aléatoire, expirant et à usage unique.
-- [ ] Envoyer l'e-mail contenant le lien unique d'activation.
-- [ ] Envoyer les e-mails via l'interface SMTP générique, avec timeout, gestion d'erreur et sans journaliser les identifiants.
+- [x] Refuser côté serveur toute date de naissance indiquant moins de 18 ans avant insertion du compte.
+- [x] Valider le format et l'unicité de l'e-mail et du username.
+- [x] Imposer une politique de mot de passe sécurisé.
+- [x] Refuser les mots anglais courants comme mot de passe.
+- [x] Ajouter le fichier local de mots anglais courants avec sa source, sa version, sa licence et son checksum documentés.
+- [x] Comparer de manière insensible à la casse et après normalisation Unicode.
+- [x] Tester des mots anglais courants, variantes de casse et entrées Unicode sans journaliser le mot de passe.
+- [x] Hacher tous les mots de passe avec le choix validé Argon2id via `argon2-cffi`.
+- [x] Ne jamais stocker ni journaliser le mot de passe en clair.
+- [x] Créer le compte inactif et un jeton d'activation aléatoire, expirant et à usage unique.
+- [x] Envoyer l'e-mail contenant le lien unique d'activation.
+- [x] Envoyer les e-mails via l'interface SMTP générique, avec timeout, gestion d'erreur et sans journaliser les identifiants.
 - [ ] Ne jamais envoyer d'e-mail réel aux adresses fictives sous `example.test`.
 - [ ] Afficher un résultat neutre qui ne facilite pas l'énumération des comptes.
 
 ### 3.2 Activation et connexion
 
-- [ ] Créer la route d'activation et vérifier validité, expiration et usage du jeton.
-- [ ] Activer le compte puis invalider le jeton.
-- [ ] Empêcher un compte non activé de se connecter.
-- [ ] Permettre la connexion avec username et mot de passe.
-- [ ] Limiter les tentatives et éviter de révéler quel champ est incorrect.
-- [ ] Mettre à jour le statut et la dernière activité.
+- [x] Créer la route d'activation et vérifier validité, expiration et usage du jeton.
+- [x] Activer le compte puis invalider le jeton.
+- [x] Empêcher un compte non activé de se connecter.
+- [x] Permettre la connexion avec username et mot de passe.
+- [x] Limiter les tentatives et éviter de révéler quel champ est incorrect.
+- [x] Mettre à jour le statut et la dernière activité.
 - [ ] Rendre la déconnexion accessible en un clic depuis chaque page authentifiée.
 
 ### 3.3 Mot de passe oublié
