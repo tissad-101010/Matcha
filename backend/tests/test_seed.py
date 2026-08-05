@@ -1,7 +1,8 @@
 """Tests for deterministic, synthetic demonstration fixtures."""
 
+from app.auth.passwords import password_error
 from app.seed.avatars import avatar_bytes
-from app.seed.demo import PROFILE_COUNT, build_profiles
+from app.seed.demo import DEMO_PASSWORD, PROFILE_COUNT, build_profiles
 from app.seed.identifiers import stable_id
 
 
@@ -26,3 +27,7 @@ def test_avatar_is_deterministic_webp_without_metadata() -> None:
     assert first == avatar_bytes(42)
     assert first != avatar_bytes(43)
     assert first.startswith(b"RIFF") and b"WEBP" in first[:16]
+
+
+def test_demo_password_respects_the_registration_policy() -> None:
+    assert password_error(DEMO_PASSWORD) is None

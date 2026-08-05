@@ -4,15 +4,15 @@ from datetime import UTC, datetime
 from random import Random
 
 import psycopg
-from argon2 import PasswordHasher
 from faker import Faker
 
+from app.auth.passwords import hash_password, verify_password
 from app.seed.fixtures import BIOS, LOCATIONS, TAGS
 from app.seed.identifiers import stable_id
 from app.seed.storage import s3_client, upload_avatars
 
 PROFILE_COUNT = 600
-DEMO_PASSWORD = "Matcha-Demo-2026!"
+DEMO_PASSWORD = "Brume-7-Rivière!"
 GENDERS = ("man", "woman", "non_binary")
 
 
@@ -60,6 +60,14 @@ def seed_database(database_url: str, config: dict[str, object]) -> str:
             "SELECT count(*) FROM accounts WHERE id = ANY(%s)", (expected_ids,)
         ).fetchone()[0]
         if existing == PROFILE_COUNT and seeded == PROFILE_COUNT:
+            current_hash = connection.execute(
+                "SELECT password_hash FROM accounts WHERE id = %s", (expected_ids[0],)
+            ).fetchone()[0]
+            if not verify_password(current_hash, DEMO_PASSWORD):
+                connection.execute(
+                    "UPDATE accounts SET password_hash = %s WHERE id = ANY(%s)",
+                    (hash_password(DEMO_PASSWORD), expected_ids),
+                )
             return "already_seeded"
         if existing:
             raise RuntimeError(
@@ -68,7 +76,7 @@ def seed_database(database_url: str, config: dict[str, object]) -> str:
 
     photo_rows = upload_avatars(s3_client(config), profiles)
     now = datetime.now(UTC)
-    password_hash = PasswordHasher().hash(DEMO_PASSWORD)
+    password_hash = hash_password(DEMO_PASSWORD)
 
     with psycopg.connect(database_url) as connection:
         _insert_catalogues(connection)
