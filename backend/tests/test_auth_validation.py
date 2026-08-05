@@ -4,7 +4,7 @@ from datetime import date
 
 import pytest
 
-from app.auth.validation import InputValidationError, validate_register
+from app.auth.validation import InputValidationError, validate_register, validate_token
 
 VALID_PAYLOAD = {
     "first_name": "  Alice ",
@@ -46,3 +46,10 @@ def test_registration_collects_safe_field_errors() -> None:
         "birth_date",
         "password",
     }
+
+
+def test_token_request_requires_an_opaque_string() -> None:
+    assert validate_token({"token": "a" * 32}) == "a" * 32
+
+    with pytest.raises(InputValidationError):
+        validate_token({"token": "short"})

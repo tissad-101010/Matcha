@@ -31,6 +31,14 @@ class InputValidationError(ValueError):
         self.fields = fields
 
 
+def validate_token(payload: Any) -> str:
+    """Validate the generic TokenRequest without interpreting the opaque token."""
+    token = payload.get("token") if isinstance(payload, dict) else None
+    if not isinstance(token, str) or not 20 <= len(token) <= 256:
+        raise InputValidationError({"token": "Jeton invalide ou expiré."})
+    return token
+
+
 def validate_register(payload: Any, today: date | None = None) -> RegisterData:
     """Validate and normalize the documented RegisterRequest model."""
     if not isinstance(payload, dict):

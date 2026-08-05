@@ -4,7 +4,7 @@ from uuid import UUID
 
 from flask.testing import FlaskClient
 
-from app.auth.repository import DuplicateAccountError
+from app.auth.repository import ActivatedAccount, DuplicateAccountError, InvalidTokenError
 from app.auth.service import RegistrationResult
 
 VALID_REGISTRATION = {
@@ -55,3 +55,38 @@ def test_register_hides_which_identifier_conflicts(client: FlaskClient, monkeypa
     assert response.get_json()["error"]["message"] == (
         "Cette adresse e-mail ou ce nom d’utilisateur est indisponible."
     )
+
+
+def test_verify_email_returns_the_documented_session_user(client: FlaskClient, monkeypatch) -> None:
+    account_id = UUID("e8d7a810-4cb8-47ec-b359-70fdc5288a9a")
+    monkeypatch.setattr(
+        "app.routes.auth.verify_email",
+        lambda _config, _token: ActivatedAccount(account_id, "ada_lovelace", "Ada"),
+    )
+
+    response = client.post("/api/v1/auth/verify-email", json={"token": "a" * 32})
+
+    assert response.status_code == 200
+    assert response.get_json() == {
+        "data": {
+            "id": str(account_id),
+            "username": "ada_lovelace",
+            "first_name": "Ada",
+            "account_status": "active",
+            "profile_complete": False,
+            "has_main_photo": False,
+            "matching_enabled": False,
+        }
+    }
+
+
+def test_verify_email_hides_invalid_token_reason(client: FlaskClient, monkeypatch) -> None:
+    def invalid(_config, _token):
+        raise InvalidTokenError
+
+    monkeypatch.setattr("app.routes.auth.verify_email", invalid)
+
+    response = client.post("/api/v1/auth/verify-email", json={"token": "a" * 32})
+
+    assert response.status_code == 422
+    assert response.get_json()["error"]["code"] == "invalid_token"

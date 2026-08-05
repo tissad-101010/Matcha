@@ -656,8 +656,8 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 3.2 Activation et connexion
 
-- [ ] Créer la route d'activation et vérifier validité, expiration et usage du jeton.
-- [ ] Activer le compte puis invalider le jeton.
+- [x] Créer la route d'activation et vérifier validité, expiration et usage du jeton.
+- [x] Activer le compte puis invalider le jeton.
 - [ ] Empêcher un compte non activé de se connecter.
 - [ ] Permettre la connexion avec username et mot de passe.
 - [ ] Limiter les tentatives et éviter de révéler quel champ est incorrect.

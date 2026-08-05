@@ -2,9 +2,9 @@
 
 from flask import Blueprint, current_app, jsonify, request
 
-from app.auth.repository import DuplicateAccountError
-from app.auth.service import register
-from app.auth.validation import InputValidationError, validate_register
+from app.auth.repository import DuplicateAccountError, InvalidTokenError
+from app.auth.service import register, verify_email
+from app.auth.validation import InputValidationError, validate_register, validate_token
 
 auth_blueprint = Blueprint("auth", __name__, url_prefix="/api/v1/auth")
 
@@ -36,6 +36,35 @@ def register_account():  # type: ignore[no-untyped-def]
             }
         ),
         201,
+    )
+
+
+@auth_blueprint.post("/verify-email")
+def verify_account_email():  # type: ignore[no-untyped-def]
+    """Consume an e-mail verification token and activate its account."""
+    try:
+        token = validate_token(request.get_json(silent=True))
+        account = verify_email(current_app.config, token)
+    except (InputValidationError, InvalidTokenError):
+        return _error(
+            "invalid_token",
+            "Ce lien d’activation est invalide ou expiré.",
+            422,
+            {"token": "Demandez un nouveau lien d’activation."},
+        )
+
+    return jsonify(
+        {
+            "data": {
+                "id": str(account.account_id),
+                "username": account.username,
+                "first_name": account.first_name,
+                "account_status": "active",
+                "profile_complete": False,
+                "has_main_photo": False,
+                "matching_enabled": False,
+            }
+        }
     )
 
 

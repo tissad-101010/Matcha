@@ -7,8 +7,8 @@ from typing import Any
 from uuid import UUID
 
 from app.auth.passwords import hash_password
-from app.auth.repository import create_pending_account
-from app.auth.tokens import create_token
+from app.auth.repository import ActivatedAccount, activate_pending_account, create_pending_account
+from app.auth.tokens import create_token, token_hash
 from app.auth.validation import RegisterData
 from app.email import send_verification_email
 
@@ -32,3 +32,8 @@ def register(config: Mapping[str, Any], data: RegisterData) -> RegistrationResul
     except (OSError, smtplib.SMTPException):
         return RegistrationResult(pending.account_id, False)
     return RegistrationResult(pending.account_id, True)
+
+
+def verify_email(config: Mapping[str, Any], raw_token: str) -> ActivatedAccount:
+    """Activate the account identified by an opaque single-use token."""
+    return activate_pending_account(str(config["DATABASE_URL"]), token_hash(raw_token))

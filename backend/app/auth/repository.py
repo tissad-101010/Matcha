@@ -17,12 +17,25 @@ class PendingRegistration:
     account_id: UUID
 
 
+@dataclass(frozen=True)
+class ActivatedAccount:
+    """Public account state returned after successful verification."""
+
+    account_id: UUID
+    username: str
+    first_name: str
+
+
 class DuplicateAccountError(ValueError):
     """Report a public field conflict without leaking SQL details."""
 
     def __init__(self, field: str) -> None:
         super().__init__(field)
         self.field = field
+
+
+class InvalidTokenError(ValueError):
+    """Represent every invalid, expired or consumed token identically."""
 
 
 def create_pending_account(
@@ -58,3 +71,43 @@ def create_pending_account(
         constraint = error.diag.constraint_name or ""
         field = "email" if "email" in constraint else "username"
         raise DuplicateAccountError(field) from error
+
+
+def activate_pending_account(database_url: str, verification_hash: bytes) -> ActivatedAccount:
+    """Consume a valid token and activate its account in one transaction."""
+    with psycopg.connect(database_url) as connection:
+        token_row = connection.execute(
+            """
+            SELECT token.id, token.account_id
+            FROM account_tokens AS token
+            JOIN accounts AS account ON account.id = token.account_id
+            WHERE token.token_hash = %s
+              AND token.type = 'verify_email'
+              AND token.consumed_at IS NULL
+              AND token.expires_at > CURRENT_TIMESTAMP
+              AND account.status = 'pending_verification'
+            FOR UPDATE OF token, account
+            """,
+            (verification_hash,),
+        ).fetchone()
+        if token_row is None:
+            raise InvalidTokenError
+
+        token_id, account_id = token_row
+        connection.execute(
+            "UPDATE account_tokens SET consumed_at = CURRENT_TIMESTAMP WHERE id = %s",
+            (token_id,),
+        )
+        account = connection.execute(
+            """
+            UPDATE accounts
+            SET status = 'active', email_verified_at = CURRENT_TIMESTAMP
+            WHERE id = %s
+            RETURNING username
+            """,
+            (account_id,),
+        ).fetchone()
+        first_name = connection.execute(
+            "SELECT first_name FROM profiles WHERE user_id = %s", (account_id,)
+        ).fetchone()[0]
+    return ActivatedAccount(account_id, account[0], first_name)
