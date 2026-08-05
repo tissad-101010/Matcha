@@ -24,6 +24,7 @@ build: config ## Construire les images de l'application
 start: config ## Construire et démarrer tous les services
 	$(COMPOSE) up -d --build
 	$(COMPOSE) up -d --no-deps --force-recreate nginx
+	python3 scripts/check_health.py
 
 migrate: .env ## Appliquer les migrations SQL manuelles dans l'ordre
 	$(COMPOSE) exec -T backend python -m scripts.migrate
