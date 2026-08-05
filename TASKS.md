@@ -658,10 +658,10 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 - [x] Créer la route d'activation et vérifier validité, expiration et usage du jeton.
 - [x] Activer le compte puis invalider le jeton.
-- [ ] Empêcher un compte non activé de se connecter.
-- [ ] Permettre la connexion avec username et mot de passe.
-- [ ] Limiter les tentatives et éviter de révéler quel champ est incorrect.
-- [ ] Mettre à jour le statut et la dernière activité.
+- [x] Empêcher un compte non activé de se connecter.
+- [x] Permettre la connexion avec username et mot de passe.
+- [x] Limiter les tentatives et éviter de révéler quel champ est incorrect.
+- [x] Mettre à jour le statut et la dernière activité.
 - [ ] Rendre la déconnexion accessible en un clic depuis chaque page authentifiée.
 
 ### 3.3 Mot de passe oublié

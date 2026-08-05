@@ -23,6 +23,14 @@ class RegisterData:
     password: str
 
 
+@dataclass(frozen=True)
+class LoginData:
+    """Normalized fields accepted by the classic login service."""
+
+    username: str
+    password: str
+
+
 class InputValidationError(ValueError):
     """Carry field errors that are safe to return to the client."""
 
@@ -37,6 +45,19 @@ def validate_token(payload: Any) -> str:
     if not isinstance(token, str) or not 20 <= len(token) <= 256:
         raise InputValidationError({"token": "Jeton invalide ou expiré."})
     return token
+
+
+def validate_login(payload: Any) -> LoginData:
+    """Validate the documented LoginRequest without exposing account existence."""
+    if not isinstance(payload, dict):
+        raise InputValidationError({"body": "Un objet JSON est requis."})
+    username = payload.get("username")
+    password = payload.get("password")
+    if not isinstance(username, str) or not 3 <= len(username.strip()) <= 30:
+        raise InputValidationError({"credentials": "Identifiants invalides."})
+    if not isinstance(password, str) or not password:
+        raise InputValidationError({"credentials": "Identifiants invalides."})
+    return LoginData(username.strip().casefold(), password)
 
 
 def validate_register(payload: Any, today: date | None = None) -> RegisterData:

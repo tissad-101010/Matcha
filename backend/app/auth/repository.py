@@ -26,6 +26,20 @@ class ActivatedAccount:
     first_name: str
 
 
+@dataclass(frozen=True)
+class LoginAccount:
+    """Minimal private account record required to establish a session."""
+
+    account_id: UUID
+    username: str
+    first_name: str
+    password_hash: str
+    status: str
+    profile_complete: bool
+    has_main_photo: bool
+    matching_enabled: bool
+
+
 class DuplicateAccountError(ValueError):
     """Report a public field conflict without leaking SQL details."""
 
@@ -111,3 +125,40 @@ def activate_pending_account(database_url: str, verification_hash: bytes) -> Act
             "SELECT first_name FROM profiles WHERE user_id = %s", (account_id,)
         ).fetchone()[0]
     return ActivatedAccount(account_id, account[0], first_name)
+
+
+def find_account_for_login(database_url: str, username: str) -> LoginAccount | None:
+    """Load only fields needed for authentication and the SessionUser response."""
+    with psycopg.connect(database_url) as connection:
+        row = connection.execute(
+            """
+            SELECT account.id, account.username, profile.first_name,
+                   account.password_hash, account.status,
+                   (profile.gender IS NOT NULL AND profile.bio IS NOT NULL
+                    AND EXISTS (SELECT 1 FROM profile_tags WHERE user_id = account.id)
+                    AND EXISTS (
+                        SELECT 1 FROM user_locations WHERE user_id = account.id
+                    )) AS complete,
+                   EXISTS (
+                       SELECT 1 FROM photos WHERE user_id = account.id AND is_main
+                   ) AS has_photo,
+                   COALESCE((
+                       SELECT granted FROM consent_events
+                       WHERE user_id = account.id AND purpose = 'matching_preferences'
+                       ORDER BY occurred_at DESC, id DESC LIMIT 1
+                   ), false) AS matching_enabled
+            FROM accounts AS account
+            JOIN profiles AS profile ON profile.user_id = account.id
+            WHERE account.username = %s
+            """,
+            (username,),
+        ).fetchone()
+    return LoginAccount(*row) if row else None
+
+
+def record_login(database_url: str, account_id: UUID) -> None:
+    """Persist the last successful login required by the subject's presence display."""
+    with psycopg.connect(database_url) as connection:
+        connection.execute(
+            "UPDATE accounts SET last_login_at = CURRENT_TIMESTAMP WHERE id = %s", (account_id,)
+        )

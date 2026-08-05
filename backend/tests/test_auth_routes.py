@@ -4,8 +4,13 @@ from uuid import UUID
 
 from flask.testing import FlaskClient
 
-from app.auth.repository import ActivatedAccount, DuplicateAccountError, InvalidTokenError
-from app.auth.service import RegistrationResult
+from app.auth.repository import (
+    ActivatedAccount,
+    DuplicateAccountError,
+    InvalidTokenError,
+    LoginAccount,
+)
+from app.auth.service import InvalidCredentialsError, RegistrationResult
 
 VALID_REGISTRATION = {
     "first_name": "Ada",
@@ -90,3 +95,41 @@ def test_verify_email_hides_invalid_token_reason(client: FlaskClient, monkeypatc
 
     assert response.status_code == 422
     assert response.get_json()["error"]["code"] == "invalid_token"
+
+
+def test_login_session_and_csrf_protected_logout(client: FlaskClient, monkeypatch) -> None:
+    account_id = UUID("e8d7a810-4cb8-47ec-b359-70fdc5288a9a")
+    account = LoginAccount(
+        account_id, "ada_lovelace", "Ada", "unused", "active", False, False, False
+    )
+    monkeypatch.setattr("app.routes.auth.authenticate", lambda _config, _user, _password: account)
+
+    login_response = client.post(
+        "/api/v1/auth/login", json={"username": "ada_lovelace", "password": "secret"}
+    )
+    csrf_token = login_response.get_json()["data"]["csrf_token"]
+
+    assert login_response.status_code == 200
+    assert "matcha_session=" in login_response.headers["Set-Cookie"]
+    assert "HttpOnly" in login_response.headers["Set-Cookie"]
+    assert client.get("/api/v1/auth/session").get_json()["data"]["user"]["id"] == str(account_id)
+    assert client.post("/api/v1/auth/logout").status_code == 403
+    assert (
+        client.post("/api/v1/auth/logout", headers={"X-CSRF-Token": csrf_token}).status_code
+        == 204
+    )
+    assert client.get("/api/v1/auth/session").status_code == 401
+
+
+def test_login_uses_one_neutral_credentials_error(client: FlaskClient, monkeypatch) -> None:
+    def invalid(_config, _user, _password):
+        raise InvalidCredentialsError
+
+    monkeypatch.setattr("app.routes.auth.authenticate", invalid)
+
+    response = client.post(
+        "/api/v1/auth/login", json={"username": "unknown", "password": "incorrect"}
+    )
+
+    assert response.status_code == 401
+    assert response.get_json()["error"]["code"] == "invalid_credentials"

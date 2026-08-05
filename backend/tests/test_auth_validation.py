@@ -4,7 +4,12 @@ from datetime import date
 
 import pytest
 
-from app.auth.validation import InputValidationError, validate_register, validate_token
+from app.auth.validation import (
+    InputValidationError,
+    validate_login,
+    validate_register,
+    validate_token,
+)
 
 VALID_PAYLOAD = {
     "first_name": "  Alice ",
@@ -53,3 +58,10 @@ def test_token_request_requires_an_opaque_string() -> None:
 
     with pytest.raises(InputValidationError):
         validate_token({"token": "short"})
+
+
+def test_login_request_normalizes_username() -> None:
+    result = validate_login({"username": " Ada_42 ", "password": "secret"})
+
+    assert result.username == "ada_42"
+    assert result.password == "secret"
