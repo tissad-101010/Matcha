@@ -100,7 +100,7 @@ def test_verify_email_hides_invalid_token_reason(client: FlaskClient, monkeypatc
 def test_login_session_and_csrf_protected_logout(client: FlaskClient, monkeypatch) -> None:
     account_id = UUID("e8d7a810-4cb8-47ec-b359-70fdc5288a9a")
     account = LoginAccount(
-        account_id, "ada_lovelace", "Ada", "unused", "active", False, False, False
+        account_id, "ada_lovelace", "Ada", "unused", "active", False, False, False, 0
     )
     monkeypatch.setattr("app.routes.auth.authenticate", lambda _config, _user, _password: account)
 
@@ -133,3 +133,32 @@ def test_login_uses_one_neutral_credentials_error(client: FlaskClient, monkeypat
 
     assert response.status_code == 401
     assert response.get_json()["error"]["code"] == "invalid_credentials"
+
+
+def test_forgot_password_response_is_neutral(client: FlaskClient, monkeypatch) -> None:
+    requested: list[str] = []
+    monkeypatch.setattr(
+        "app.routes.auth.request_password_reset",
+        lambda _config, email: requested.append(email),
+    )
+
+    existing = client.post(
+        "/api/v1/auth/forgot-password", json={"email": "member@example.test"}
+    )
+    invalid = client.post("/api/v1/auth/forgot-password", json={"email": "invalid"})
+
+    assert existing.status_code == invalid.status_code == 200
+    assert existing.get_json() == invalid.get_json()
+    assert requested == ["member@example.test", "invalid@example.invalid"]
+
+
+def test_reset_password_returns_no_content(client: FlaskClient, monkeypatch) -> None:
+    monkeypatch.setattr("app.routes.auth.reset_password", lambda *_args: None)
+
+    response = client.post(
+        "/api/v1/auth/reset-password",
+        json={"token": "a" * 32, "new_password": "Orbite-7-Nébuleuse!"},
+    )
+
+    assert response.status_code == 204
+    assert response.data == b""

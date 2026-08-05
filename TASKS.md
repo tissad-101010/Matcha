@@ -667,11 +667,11 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 ### 3.3 Mot de passe oublié
 
 - [ ] Créer le formulaire de demande de réinitialisation.
-- [ ] Retourner le même message que l'e-mail existe ou non.
-- [ ] Générer un jeton aléatoire, expirant et à usage unique.
-- [ ] Envoyer le lien par e-mail.
-- [ ] Vérifier le jeton puis appliquer la même politique au nouveau mot de passe.
-- [ ] Invalider le jeton et les anciennes sessions après modification.
+- [x] Retourner le même message que l'e-mail existe ou non.
+- [x] Générer un jeton aléatoire, expirant et à usage unique.
+- [x] Envoyer le lien par e-mail.
+- [x] Vérifier le jeton puis appliquer la même politique au nouveau mot de passe.
+- [x] Invalider le jeton et les anciennes sessions après modification.
 
 ---
 

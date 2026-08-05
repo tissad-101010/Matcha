@@ -15,6 +15,7 @@ def app() -> Flask:
             "SECRET_KEY": "test-only-secret",
             "LOGIN_RATE_LIMITER": lambda _url, _subject: True,
             "LOGIN_RATE_LIMIT_RESETTER": lambda _url, _subject: None,
+            "SESSION_VALIDATOR": lambda _url, _user_id, _version: True,
         }
     )
 

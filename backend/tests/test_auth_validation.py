@@ -8,6 +8,7 @@ from app.auth.validation import (
     InputValidationError,
     validate_login,
     validate_register,
+    validate_reset_password,
     validate_token,
 )
 
@@ -65,3 +66,13 @@ def test_login_request_normalizes_username() -> None:
 
     assert result.username == "ada_42"
     assert result.password == "secret"
+
+
+def test_reset_password_reuses_registration_password_policy() -> None:
+    result = validate_reset_password(
+        {"token": "a" * 32, "new_password": "Orbite-7-Nébuleuse!"}
+    )
+    assert result.token == "a" * 32
+
+    with pytest.raises(InputValidationError):
+        validate_reset_password({"token": "a" * 32, "new_password": "password"})

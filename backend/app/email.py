@@ -15,6 +15,23 @@ def send_verification_email(config: Mapping[str, Any], recipient: str, token: st
     link = f'{str(config["FRONTEND_URL"]).rstrip("/")}/verify-email?token={token}'
     message.set_content(f"Bienvenue sur Matcha. Activez votre compte avec ce lien :\n{link}\n")
 
+    _send(config, message)
+
+
+def send_password_reset_email(config: Mapping[str, Any], recipient: str, token: str) -> None:
+    """Send a one-time password reset link through the same generic SMTP adapter."""
+    message = EmailMessage()
+    message["Subject"] = "Réinitialisez votre mot de passe Matcha"
+    message["From"] = f'{config["SMTP_FROM_NAME"]} <{config["SMTP_FROM_EMAIL"]}>'
+    message["To"] = recipient
+    link = f'{str(config["FRONTEND_URL"]).rstrip("/")}/reset-password?token={token}'
+    message.set_content(f"Réinitialisez votre mot de passe avec ce lien :\n{link}\n")
+
+    _send(config, message)
+
+
+def _send(config: Mapping[str, Any], message: EmailMessage) -> None:
+    """Apply the shared TLS and authentication settings to an SMTP message."""
     with smtplib.SMTP(str(config["SMTP_HOST"]), int(config["SMTP_PORT"]), timeout=5) as smtp:
         if config["SMTP_USE_TLS"]:
             smtp.starttls()

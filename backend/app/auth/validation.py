@@ -31,6 +31,14 @@ class LoginData:
     password: str
 
 
+@dataclass(frozen=True)
+class ResetPasswordData:
+    """Validated fields accepted by the password reset service."""
+
+    token: str
+    new_password: str
+
+
 class InputValidationError(ValueError):
     """Carry field errors that are safe to return to the client."""
 
@@ -58,6 +66,29 @@ def validate_login(payload: Any) -> LoginData:
     if not isinstance(password, str) or not password:
         raise InputValidationError({"credentials": "Identifiants invalides."})
     return LoginData(username.strip().casefold(), password)
+
+
+def validate_email_request(payload: Any) -> str:
+    """Validate and normalize the generic EmailRequest model."""
+    errors: dict[str, str] = {}
+    email = _email(payload.get("email") if isinstance(payload, dict) else None, errors)
+    if errors:
+        raise InputValidationError(errors)
+    return email
+
+
+def validate_reset_password(payload: Any) -> ResetPasswordData:
+    """Apply the same password policy used during registration."""
+    token = validate_token(payload)
+    new_password = payload.get("new_password") if isinstance(payload, dict) else None
+    error = (
+        password_error(new_password)
+        if isinstance(new_password, str)
+        else "Mot de passe invalide."
+    )
+    if error:
+        raise InputValidationError({"new_password": error})
+    return ResetPasswordData(token, new_password)
 
 
 def validate_register(payload: Any, today: date | None = None) -> RegisterData:

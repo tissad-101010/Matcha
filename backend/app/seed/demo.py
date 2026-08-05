@@ -65,7 +65,11 @@ def seed_database(database_url: str, config: dict[str, object]) -> str:
             ).fetchone()[0]
             if not verify_password(current_hash, DEMO_PASSWORD):
                 connection.execute(
-                    "UPDATE accounts SET password_hash = %s WHERE id = ANY(%s)",
+                    """
+                    UPDATE accounts
+                    SET password_hash = %s, auth_version = auth_version + 1
+                    WHERE id = ANY(%s)
+                    """,
                     (hash_password(DEMO_PASSWORD), expected_ids),
                 )
             return "already_seeded"

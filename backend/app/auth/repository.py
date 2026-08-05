@@ -38,6 +38,7 @@ class LoginAccount:
     profile_complete: bool
     has_main_photo: bool
     matching_enabled: bool
+    auth_version: int
 
 
 class DuplicateAccountError(ValueError):
@@ -146,7 +147,8 @@ def find_account_for_login(database_url: str, username: str) -> LoginAccount | N
                        SELECT granted FROM consent_events
                        WHERE user_id = account.id AND purpose = 'matching_preferences'
                        ORDER BY occurred_at DESC, id DESC LIMIT 1
-                   ), false) AS matching_enabled
+                   ), false) AS matching_enabled,
+                   account.auth_version
             FROM accounts AS account
             JOIN profiles AS profile ON profile.user_id = account.id
             WHERE account.username = %s
@@ -162,3 +164,77 @@ def record_login(database_url: str, account_id: UUID) -> None:
         connection.execute(
             "UPDATE accounts SET last_login_at = CURRENT_TIMESTAMP WHERE id = %s", (account_id,)
         )
+
+
+def create_password_reset(
+    database_url: str, email: str, reset_hash: bytes
+) -> str | None:
+    """Replace prior reset tokens and return the recipient only for an active account."""
+    with psycopg.connect(database_url) as connection:
+        row = connection.execute(
+            "SELECT id, email FROM accounts WHERE email = %s AND status = 'active' FOR UPDATE",
+            (email,),
+        ).fetchone()
+        if row is None:
+            return None
+        account_id, recipient = row
+        connection.execute(
+            """
+            UPDATE account_tokens SET consumed_at = CURRENT_TIMESTAMP
+            WHERE account_id = %s AND type = 'reset_password' AND consumed_at IS NULL
+            """,
+            (account_id,),
+        )
+        connection.execute(
+            """
+            INSERT INTO account_tokens (account_id, type, token_hash, expires_at)
+            VALUES (%s, 'reset_password', %s, %s)
+            """,
+            (account_id, reset_hash, datetime.now(UTC) + timedelta(minutes=30)),
+        )
+    return recipient
+
+
+def consume_password_reset(database_url: str, reset_hash: bytes, password_hash: str) -> None:
+    """Consume one valid reset token, rotate the password and revoke old sessions."""
+    with psycopg.connect(database_url) as connection:
+        row = connection.execute(
+            """
+            SELECT token.id, token.account_id
+            FROM account_tokens AS token
+            JOIN accounts AS account ON account.id = token.account_id
+            WHERE token.token_hash = %s AND token.type = 'reset_password'
+              AND token.consumed_at IS NULL AND token.expires_at > CURRENT_TIMESTAMP
+              AND account.status = 'active'
+            FOR UPDATE OF token, account
+            """,
+            (reset_hash,),
+        ).fetchone()
+        if row is None:
+            raise InvalidTokenError
+        token_id, account_id = row
+        connection.execute(
+            "UPDATE account_tokens SET consumed_at = CURRENT_TIMESTAMP WHERE id = %s",
+            (token_id,),
+        )
+        connection.execute(
+            """
+            UPDATE accounts
+            SET password_hash = %s, auth_version = auth_version + 1
+            WHERE id = %s
+            """,
+            (password_hash, account_id),
+        )
+
+
+def session_is_current(database_url: str, account_id: str, auth_version: int) -> bool:
+    """Reject sessions created before a password rotation or account deactivation."""
+    with psycopg.connect(database_url) as connection:
+        row = connection.execute(
+            """
+            SELECT 1 FROM accounts
+            WHERE id = %s AND auth_version = %s AND status = 'active'
+            """,
+            (account_id, auth_version),
+        ).fetchone()
+    return row is not None
