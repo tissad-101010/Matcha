@@ -40,6 +40,25 @@ def validate_profile_update(payload: Any, today: date | None = None) -> dict[str
     return result
 
 
+def validate_preferences(payload: Any) -> list[str]:
+    """Validate a duplicate-free set of desired genders; empty means all genders."""
+    values = payload.get("desired_genders") if isinstance(payload, dict) else None
+    if not isinstance(values, list) or any(value not in GENDERS for value in values):
+        raise InputValidationError({"desired_genders": "Préférences invalides."})
+    if len(values) > len(GENDERS) or len(set(values)) != len(values):
+        raise InputValidationError({"desired_genders": "Les doublons sont interdits."})
+    return values
+
+
+def validate_consent(payload: Any, current_version: str) -> str:
+    """Require an explicit, current and unambiguous consent confirmation."""
+    if not isinstance(payload, dict) or payload.get("confirmed") is not True:
+        raise InputValidationError({"confirmed": "Une confirmation explicite est requise."})
+    if payload.get("policy_version") != current_version:
+        raise InputValidationError({"policy_version": "Le texte d’information a été mis à jour."})
+    return current_version
+
+
 def _adult_date(value: Any, today: date, errors: dict[str, str]) -> date:
     try:
         parsed = date.fromisoformat(value) if isinstance(value, str) else date.min

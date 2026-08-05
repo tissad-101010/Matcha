@@ -76,6 +76,46 @@ def update_profile(database_url: str, user_id: str, changes: dict[str, Any]) -> 
         )
 
 
+def matching_consent_active(database_url: str, user_id: str) -> bool:
+    """Return only the latest recorded decision for sensitive preferences."""
+    with psycopg.connect(database_url) as connection:
+        row = connection.execute(
+            """
+            SELECT granted FROM consent_events
+            WHERE user_id = %s AND purpose = 'matching_preferences'
+            ORDER BY occurred_at DESC, id DESC LIMIT 1
+            """,
+            (user_id,),
+        ).fetchone()
+    return bool(row and row[0])
+
+
+def replace_preferences(database_url: str, user_id: str, genders: list[str]) -> None:
+    """Replace the desired-gender set atomically after consent validation."""
+    with psycopg.connect(database_url) as connection:
+        connection.execute("DELETE FROM user_preferences WHERE user_id = %s", (user_id,))
+        connection.executemany(
+            "INSERT INTO user_preferences (user_id, desired_gender) VALUES (%s, %s)",
+            [(user_id, gender) for gender in genders],
+        )
+
+
+def record_matching_consent(
+    database_url: str, user_id: str, policy_version: str, granted: bool
+) -> None:
+    """Append an auditable decision and erase preferences immediately on withdrawal."""
+    with psycopg.connect(database_url) as connection:
+        connection.execute(
+            """
+            INSERT INTO consent_events (user_id, purpose, policy_version, granted)
+            VALUES (%s, 'matching_preferences', %s, %s)
+            """,
+            (user_id, policy_version, granted),
+        )
+        if not granted:
+            connection.execute("DELETE FROM user_preferences WHERE user_id = %s", (user_id,))
+
+
 def _serialize(row, preferences, tags, photos, location, consents):  # type: ignore[no-untyped-def]
     keys = (
         "id", "username", "email", "pending_email", "first_name", "last_name",
