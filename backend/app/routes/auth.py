@@ -13,6 +13,7 @@ from app.auth.service import (
     authenticate,
     register,
     request_password_reset,
+    resend_verification,
     reset_password,
     verify_email,
 )
@@ -177,6 +178,19 @@ def apply_password_reset():  # type: ignore[no-untyped-def]
     except InvalidTokenError:
         return _error("invalid_token", "Ce lien est invalide ou expiré.", 422, {})
     return "", 204
+
+
+@auth_blueprint.post("/resend-verification")
+def resend_verification_email():  # type: ignore[no-untyped-def]
+    """Return the same result for absent, active and pending accounts."""
+    try:
+        email = validate_email_request(request.get_json(silent=True))
+    except InputValidationError:
+        email = "invalid@example.invalid"
+    resend_verification(current_app.config, email)
+    return jsonify(
+        {"data": {"message": "Si nécessaire, un nouvel e-mail d’activation a été envoyé."}}
+    )
 
 
 def _session_response(account):  # type: ignore[no-untyped-def]

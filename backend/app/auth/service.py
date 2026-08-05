@@ -16,6 +16,7 @@ from app.auth.repository import (
     create_pending_account,
     find_account_for_login,
     record_login,
+    replace_verification_token,
 )
 from app.auth.tokens import create_token, token_hash
 from app.auth.validation import RegisterData
@@ -83,3 +84,17 @@ def reset_password(config: Mapping[str, Any], raw_token: str, new_password: str)
     consume_password_reset(
         str(config["DATABASE_URL"]), token_hash(raw_token), hash_password(new_password)
     )
+
+
+def resend_verification(config: Mapping[str, Any], email: str) -> None:
+    """Replace and send a verification token while returning no account information."""
+    raw_token, verification_hash = create_token()
+    recipient = replace_verification_token(
+        str(config["DATABASE_URL"]), email, verification_hash
+    )
+    if recipient is None:
+        return
+    try:
+        send_verification_email(config, recipient, raw_token)
+    except (OSError, smtplib.SMTPException):
+        return

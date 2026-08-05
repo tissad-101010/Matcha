@@ -195,6 +195,38 @@ def create_password_reset(
     return recipient
 
 
+def replace_verification_token(
+    database_url: str, email: str, verification_hash: bytes
+) -> str | None:
+    """Replace an unverified account's token without revealing account existence."""
+    with psycopg.connect(database_url) as connection:
+        row = connection.execute(
+            """
+            SELECT id, email FROM accounts
+            WHERE email = %s AND status = 'pending_verification' FOR UPDATE
+            """,
+            (email,),
+        ).fetchone()
+        if row is None:
+            return None
+        account_id, recipient = row
+        connection.execute(
+            """
+            UPDATE account_tokens SET consumed_at = CURRENT_TIMESTAMP
+            WHERE account_id = %s AND type = 'verify_email' AND consumed_at IS NULL
+            """,
+            (account_id,),
+        )
+        connection.execute(
+            """
+            INSERT INTO account_tokens (account_id, type, token_hash, expires_at)
+            VALUES (%s, 'verify_email', %s, %s)
+            """,
+            (account_id, verification_hash, datetime.now(UTC) + timedelta(hours=24)),
+        )
+    return recipient
+
+
 def consume_password_reset(database_url: str, reset_hash: bytes, password_hash: str) -> None:
     """Consume one valid reset token, rotate the password and revoke old sessions."""
     with psycopg.connect(database_url) as connection:

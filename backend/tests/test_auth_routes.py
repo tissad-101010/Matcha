@@ -162,3 +162,15 @@ def test_reset_password_returns_no_content(client: FlaskClient, monkeypatch) -> 
 
     assert response.status_code == 204
     assert response.data == b""
+
+
+def test_resend_verification_is_neutral(client: FlaskClient, monkeypatch) -> None:
+    monkeypatch.setattr("app.routes.auth.resend_verification", lambda *_args: None)
+
+    known = client.post(
+        "/api/v1/auth/resend-verification", json={"email": "member@example.test"}
+    )
+    invalid = client.post("/api/v1/auth/resend-verification", json={"email": "invalid"})
+
+    assert known.status_code == invalid.status_code == 200
+    assert known.get_json() == invalid.get_json()
