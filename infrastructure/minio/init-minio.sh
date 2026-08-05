@@ -7,7 +7,14 @@ done
 
 echo "MinIO est prêt, initialisation des buckets privés."
 
+retry() {
+    until "$@" >/dev/null 2>&1; do
+        sleep 2
+    done
+}
+
 for bucket in profile-photos gallery temporary; do
-    mc mb --ignore-existing "local/$bucket"
-    mc anonymous set none "local/$bucket"
+    retry mc mb --ignore-existing "local/$bucket"
+    retry mc anonymous set none "local/$bucket"
+    echo "Bucket privé prêt : $bucket"
 done
