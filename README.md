@@ -167,6 +167,8 @@ make config
 make build
 make migrate
 make schema-check
+make seed
+make seed-check
 make test
 make lint
 make check
@@ -179,8 +181,10 @@ make down
 Les migrations SQL sont appliquées automatiquement avant le démarrage de Gunicorn et peuvent
 être rejouées sans effet avec `make migrate`. Leur checksum empêche la modification silencieuse
 d'un fichier déjà appliqué. `make schema-check` teste les invariants obligatoires dans une
-transaction annulée. La cible `make seed` sera ajoutée avec le générateur des données de
-démonstration lors de la prochaine étape de construction.
+transaction annulée. `make seed` crée de façon reproductible 600 profils fictifs complets et
+600 avatars WebP synthétiques dans le bucket privé `profile-photos`. `make seed-check` vérifie
+les comptes, profils publics, consentements minimisés, photos et objets MinIO. Une seconde
+exécution de `make seed` ne duplique aucune donnée.
 
 ## Documentation du projet
 

@@ -393,7 +393,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [x] Créer un `.gitignore` adapté à la stack.
 - [x] Créer un `.env.example` sans secret avec toutes les variables attendues.
 - [x] Exclure `.env`, les clés, les fichiers temporaires et les médias locaux de Git.
-- [ ] Ajouter les commandes d'installation, de migration, de seed, de test et de lancement. (`setup`, `migrate`, `test` et `start` terminées ; `seed` reste à faire.)
+- [x] Ajouter les commandes d'installation, de migration, de seed, de test et de lancement.
 - [x] Fixer les versions des dépendances.
 - [x] Choisir au scaffold des versions majeures stables et compatibles, puis verrouiller toutes les versions exactes dans les lockfiles.
 - [x] Épingler les images Podman par version et digest pour la soutenance ; interdire le tag `latest`.
@@ -432,7 +432,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [ ] Ajouter `make logs` et des variantes ciblées pour diagnostiquer les services.
 - [x] Ajouter `make ps` et `make health` pour vérifier l'état de l'environnement.
 - [x] Ajouter `make migrate` pour appliquer les fichiers SQL dans l'ordre.
-- [ ] Ajouter `make seed` pour générer les 500 profils de démonstration.
+- [x] Ajouter `make seed` pour générer les 500 profils de démonstration.
 - [ ] Ajouter `make test`, `make test-backend`, `make test-frontend` et `make test-e2e`.
 - [ ] Ajouter `make lint`, `make format` et `make check` pour les contrôles avant rendu.
 - [ ] Ajouter `make shell-backend` et `make db-shell` pour le diagnostic local.
