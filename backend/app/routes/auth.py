@@ -8,11 +8,22 @@ from flask import Blueprint, current_app, jsonify, request, session
 
 from app.auth.rate_limit import clear_login_limit, login_allowed
 from app.auth.repository import DuplicateAccountError, InvalidTokenError
-from app.auth.service import InvalidCredentialsError, authenticate, register, verify_email
+from app.auth.service import (
+    InvalidCredentialsError,
+    authenticate,
+    register,
+    request_password_reset,
+    resend_verification,
+    reset_password,
+    verify_email,
+)
+from app.auth.session_access import authenticated_user_id
 from app.auth.validation import (
     InputValidationError,
+    validate_email_request,
     validate_login,
     validate_register,
+    validate_reset_password,
     validate_token,
 )
 
@@ -28,12 +39,12 @@ def register_account():  # type: ignore[no-untyped-def]
         result = register(current_app.config, data)
     except InputValidationError as error:
         return _error("validation_error", "Certains champs sont invalides.", 422, error.fields)
-    except DuplicateAccountError as error:
+    except DuplicateAccountError:
         return _error(
             "account_conflict",
             "Cette adresse e-mail ou ce nom d’utilisateur est indisponible.",
             409,
-            {error.field: "Cette valeur est déjà utilisée."},
+            {"account": "Ces identifiants ne sont pas disponibles."},
         )
 
     return (
@@ -106,6 +117,7 @@ def login():  # type: ignore[no-untyped-def]
 
     session.clear()
     session["user_id"] = str(account.account_id)
+    session["auth_version"] = account.auth_version
     session["csrf_token"] = secrets.token_urlsafe(32)
     session["user"] = _session_user(account)
     session.permanent = True
@@ -116,7 +128,7 @@ def login():  # type: ignore[no-untyped-def]
 @auth_blueprint.get("/session")
 def current_session():  # type: ignore[no-untyped-def]
     """Return the current authenticated session without exposing its opaque id."""
-    if "user_id" not in session:
+    if authenticated_user_id() is None:
         return _error("authentication_required", "Authentification requise.", 401, {})
     expires_at = datetime.now(UTC) + current_app.permanent_session_lifetime
     return jsonify(
@@ -135,12 +147,51 @@ def logout():  # type: ignore[no-untyped-def]
     """Revoke the current server-side session after CSRF verification."""
     expected = session.get("csrf_token", "")
     supplied = request.headers.get("X-CSRF-Token", "")
-    if "user_id" not in session:
+    if authenticated_user_id() is None:
         return _error("authentication_required", "Authentification requise.", 401, {})
     if not expected or not hmac.compare_digest(expected, supplied):
         return _error("csrf_failed", "Jeton CSRF invalide.", 403, {})
     session.clear()
     return "", 204
+
+
+@auth_blueprint.post("/forgot-password")
+def forgot_password():  # type: ignore[no-untyped-def]
+    """Always return a neutral response after a password-reset request."""
+    try:
+        email = validate_email_request(request.get_json(silent=True))
+    except InputValidationError:
+        email = "invalid@example.invalid"
+    request_password_reset(current_app.config, email)
+    return jsonify(
+        {"data": {"message": "Si ce compte existe, un e-mail de réinitialisation a été envoyé."}}
+    )
+
+
+@auth_blueprint.post("/reset-password")
+def apply_password_reset():  # type: ignore[no-untyped-def]
+    """Consume a reset token and invalidate every older authenticated session."""
+    try:
+        data = validate_reset_password(request.get_json(silent=True))
+        reset_password(current_app.config, data.token, data.new_password)
+    except InputValidationError as error:
+        return _error("validation_error", "Certains champs sont invalides.", 422, error.fields)
+    except InvalidTokenError:
+        return _error("invalid_token", "Ce lien est invalide ou expiré.", 422, {})
+    return "", 204
+
+
+@auth_blueprint.post("/resend-verification")
+def resend_verification_email():  # type: ignore[no-untyped-def]
+    """Return the same result for absent, active and pending accounts."""
+    try:
+        email = validate_email_request(request.get_json(silent=True))
+    except InputValidationError:
+        email = "invalid@example.invalid"
+    resend_verification(current_app.config, email)
+    return jsonify(
+        {"data": {"message": "Si nécessaire, un nouvel e-mail d’activation a été envoyé."}}
+    )
 
 
 def _session_response(account):  # type: ignore[no-untyped-def]

@@ -1,7 +1,10 @@
 SHELL := /bin/sh
 .DEFAULT_GOAL := help
 
-COMPOSE := podman compose --env-file .env -f compose.yml
+# VS Code's Snap package overrides XDG_DATA_HOME for child terminals. Podman
+# must keep using the user's original rootless storage in that environment.
+PODMAN_ENV := $(if $(XDG_DATA_HOME_VSCODE_SNAP_ORIG),env XDG_DATA_HOME=$(XDG_DATA_HOME_VSCODE_SNAP_ORIG),)
+COMPOSE := $(PODMAN_ENV) podman compose --env-file .env -f compose.yml
 PYTHON := .venv/bin/python
 
 .PHONY: help setup config build start migrate schema-check seed seed-check health ps logs test lint check stop down db-shell
@@ -24,6 +27,7 @@ build: config ## Construire les images de l'application
 start: config ## Construire et démarrer tous les services
 	$(COMPOSE) up -d --build
 	$(COMPOSE) up -d --no-deps --force-recreate nginx
+	python3 scripts/check_health.py
 
 migrate: .env ## Appliquer les migrations SQL manuelles dans l'ordre
 	$(COMPOSE) exec -T backend python -m scripts.migrate

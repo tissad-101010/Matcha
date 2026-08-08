@@ -19,6 +19,7 @@ def test_pending_account_cannot_authenticate(monkeypatch) -> None:
         False,
         False,
         False,
+        0,
     )
     monkeypatch.setattr("app.auth.service.find_account_for_login", lambda _url, _user: account)
 

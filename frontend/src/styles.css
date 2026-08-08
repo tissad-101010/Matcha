@@ -12,6 +12,12 @@ body {
   min-height: 100vh;
 }
 
+.auth-panel {
+  background:
+    radial-gradient(circle at 25% 20%, rgb(255 81 73 / 22%), transparent 24rem),
+    linear-gradient(145deg, #18061a, #35102d 58%, #22091f);
+}
+
 :focus-visible {
   outline: 3px solid #ff5c52;
   outline-offset: 3px;

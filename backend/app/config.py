@@ -59,6 +59,7 @@ def build_config() -> dict[str, object]:
         "SMTP_FROM_EMAIL": os.getenv("SMTP_FROM_EMAIL", "matcha@example.test"),
         "SMTP_FROM_NAME": os.getenv("SMTP_FROM_NAME", "Matcha"),
         "FRONTEND_URL": os.getenv("FRONTEND_URL", "http://localhost:3000"),
+        "CONSENT_POLICY_VERSION": os.getenv("CONSENT_POLICY_VERSION", "2026-08"),
         "JSON_SORT_KEYS": False,
         "MAX_CONTENT_LENGTH": 5 * 1024 * 1024,
         "TESTING": _boolean("TESTING", False),

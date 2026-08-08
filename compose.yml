@@ -112,6 +112,7 @@ services:
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
       SMTP_FROM_NAME: ${SMTP_FROM_NAME}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      CONSENT_POLICY_VERSION: ${CONSENT_POLICY_VERSION:-2026-08}
     depends_on:
       - postgres
       - valkey
