@@ -715,19 +715,19 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 ### 4.3 Localisation respectueuse du consentement
 
 - [ ] Demander explicitement l'autorisation avant d'appeler la géolocalisation du navigateur.
-- [ ] Enregistrer le choix de consentement.
-- [ ] Convertir les coordonnées en ville/quartier sans exposer inutilement leur précision.
-- [ ] Réduire les coordonnées GPS à la précision de quartier avant leur stockage métier et ne jamais exposer les coordonnées brutes.
-- [ ] Créer un catalogue local de villes/quartiers et coordonnées approximatives pour la saisie manuelle et le seed.
-- [ ] Permettre une recherche locale dans ce catalogue sans appeler un service externe à chaque frappe.
+- [x] Enregistrer via l'API le consentement GPS séparé, versionné et retirable ; le branchement à l'écran reste à faire.
+- [x] Convertir les coordonnées en ville/quartier approximatif via le centroïde local le plus proche sans exposer leur précision.
+- [x] Remplacer immédiatement les coordonnées GPS brutes par le centroïde du catalogue avant le stockage métier et ne jamais les renvoyer.
+- [x] Créer un catalogue local de villes/quartiers et coordonnées approximatives pour la saisie manuelle et le seed.
+- [x] Permettre une recherche API locale dans ce catalogue sans appeler de service externe à chaque frappe.
 - [ ] Intégrer Nominatim uniquement pour une recherche ou un géocodage inverse explicitement déclenché par l'utilisateur.
 - [ ] Respecter pour Nominatim : au maximum une requête par seconde pour toute l'application, User-Agent identifiable, attribution visible et cache des résultats.
 - [ ] Interdire l'autocomplétion directe, le bulk geocoding et l'utilisation de Nominatim par le seed.
 - [ ] Rendre l'endpoint de géocodage configurable afin de pouvoir changer ou désactiver le fournisseur sans mise à jour du frontend.
-- [ ] Basculer proprement sur le catalogue et la saisie manuelle lorsque Nominatim ou Internet est indisponible.
-- [ ] Si le GPS est refusé ou indisponible, demander obligatoirement une ville ou un quartier.
-- [ ] Empêcher le matching tant qu'aucune localisation n'est disponible.
-- [ ] Permettre de modifier ou remplacer la localisation à tout moment.
+- [x] Rendre le catalogue et la saisie manuelle totalement indépendants de Nominatim et d'Internet.
+- [ ] Si le GPS est refusé ou indisponible, demander obligatoirement une ville ou un quartier dans l'interface.
+- [x] Empêcher côté serveur le matching tant qu'aucune localisation n'est disponible via la règle de complétude.
+- [x] Permettre via l'API de modifier, remplacer ou supprimer la localisation à tout moment.
 - [ ] Calculer une distance exploitable pour suggestions, tris et filtres.
 
 ### 4.4 Popularité et historique personnel

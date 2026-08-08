@@ -91,6 +91,20 @@ def matching_consent_active(database_url: str, user_id: str) -> bool:
     return bool(row and row[0])
 
 
+def location_consent_active(database_url: str, user_id: str) -> bool:
+    """Return the latest explicit GPS decision independently from preferences."""
+    with psycopg.connect(database_url) as connection:
+        row = connection.execute(
+            """
+            SELECT granted FROM consent_events
+            WHERE user_id = %s AND purpose = 'gps_location'
+            ORDER BY occurred_at DESC, id DESC LIMIT 1
+            """,
+            (user_id,),
+        ).fetchone()
+    return bool(row and row[0])
+
+
 def replace_preferences(database_url: str, user_id: str, genders: list[str]) -> None:
     """Replace the desired-gender set atomically after consent validation."""
     with psycopg.connect(database_url) as connection:
@@ -115,6 +129,25 @@ def record_matching_consent(
         )
         if not granted:
             connection.execute("DELETE FROM user_preferences WHERE user_id = %s", (user_id,))
+
+
+def record_location_consent(
+    database_url: str, user_id: str, policy_version: str, granted: bool
+) -> None:
+    """Append the GPS decision and erase GPS-derived data on withdrawal."""
+    with psycopg.connect(database_url) as connection:
+        connection.execute(
+            """
+            INSERT INTO consent_events (user_id, purpose, policy_version, granted)
+            VALUES (%s, 'gps_location', %s, %s)
+            """,
+            (user_id, policy_version, granted),
+        )
+        if not granted:
+            connection.execute(
+                "DELETE FROM user_locations WHERE user_id = %s AND source = 'gps_reduced'",
+                (user_id,),
+            )
 
 
 def _serialize(row, preferences, tags, photos, location, consents):  # type: ignore[no-untyped-def]
