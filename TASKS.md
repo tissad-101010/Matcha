@@ -760,7 +760,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [x] Combiner distance, tags et popularité avec la formule métier validée.
 - [x] Donner une priorité absolue aux profils de la même zone géographique.
 - [x] Vérifier avec des tests que le classement respecte réellement ces règles.
-- [ ] Afficher les informations utiles expliquant la suggestion : distance, tags communs et popularité.
+- [x] Afficher sur chaque carte la distance arrondie, la zone, les tags communs et la popularité expliquant la suggestion.
 
 ### 5.3 Tri et filtrage des suggestions
 

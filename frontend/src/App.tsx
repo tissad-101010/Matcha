@@ -6,6 +6,7 @@ import { RegisterPage } from './auth/RegisterPage'
 import { ResetPasswordPage } from './auth/ResetPasswordPage'
 import { VerifyEmailPage } from './auth/VerifyEmailPage'
 import { OnboardingPage } from './onboarding/OnboardingPage'
+import { DiscoveryPage } from './discovery/DiscoveryPage'
 
 function currentPath() {
   return window.location.pathname
@@ -29,5 +30,6 @@ export function App() {
   if (path === '/reset-password') return <ResetPasswordPage />
   if (path === '/verify-email') return <VerifyEmailPage />
   if (path === '/onboarding') return <OnboardingPage />
+  if (path === '/discover') return <DiscoveryPage />
   return <LoginPage />
 }

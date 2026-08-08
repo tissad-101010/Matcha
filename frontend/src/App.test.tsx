@@ -93,4 +93,48 @@ describe('authentication experience', () => {
     expect(screen.getByText('Photos facultatives')).toBeVisible()
     expect(screen.getByLabelText(/je consens explicitement/i)).not.toBeChecked()
   })
+
+  it('renders ranked discovery cards from the API', async () => {
+    window.history.replaceState({}, '', '/discover')
+    const responses = [
+      { data: { csrf_token: 'csrf' } },
+      {
+        data: [
+          {
+            id: 'profile-1',
+            first_name: 'Ada',
+            age: 30,
+            main_photo: null,
+            tags: [{ id: 'tag-1', name: 'Cinéma' }],
+            location: {
+              city: 'Paris',
+              district: null,
+              distance_km: 2.4,
+              same_zone: true,
+            },
+            popularity: 42,
+            presence: { online: true, last_seen_at: null },
+            common_tags: 1,
+          },
+        ],
+        meta: { next_cursor: null, count: 1 },
+      },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(responses.shift()),
+        }),
+      ),
+    )
+    render(<App />)
+    expect(
+      await screen.findByRole('heading', { name: 'Ada, 30' }),
+    ).toBeVisible()
+    expect(screen.getByText(/même zone/i)).toBeVisible()
+    expect(screen.getByText('42/100')).toBeVisible()
+  })
 })
