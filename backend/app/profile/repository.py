@@ -38,7 +38,7 @@ def get_private_profile(database_url: str, user_id: str) -> dict[str, Any] | Non
         ).fetchall()
         photos = connection.execute(
             """
-            SELECT id, mime_type, byte_size, width, height, position, is_main
+            SELECT id, position, is_main, width, height
             FROM photos WHERE user_id = %s ORDER BY position
             """,
             (user_id,),
@@ -174,12 +174,11 @@ def _serialize(row, preferences, tags, photos, location, consents):  # type: ign
     result["photos"] = [
         {
             "id": str(item[0]),
-            "mime_type": item[1],
-            "byte_size": item[2],
+            "url": f"/api/v1/photos/{item[0]}",
+            "position": item[1],
+            "is_main": item[2],
             "width": item[3],
             "height": item[4],
-            "position": item[5],
-            "is_main": item[6],
         }
         for item in photos
     ]

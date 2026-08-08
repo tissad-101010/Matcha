@@ -61,6 +61,7 @@ def build_config() -> dict[str, object]:
         "FRONTEND_URL": os.getenv("FRONTEND_URL", "http://localhost:3000"),
         "CONSENT_POLICY_VERSION": os.getenv("CONSENT_POLICY_VERSION", "2026-08"),
         "JSON_SORT_KEYS": False,
-        "MAX_CONTENT_LENGTH": 5 * 1024 * 1024,
+        # Multipart framing adds bytes; the file itself is capped at exactly 5 MiB.
+        "MAX_CONTENT_LENGTH": 6 * 1024 * 1024,
         "TESTING": _boolean("TESTING", False),
     }

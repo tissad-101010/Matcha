@@ -491,7 +491,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [ ] Utiliser `CASCADE` seulement pour les données exclusivement possédées : profil, associations de tags, photos et jetons.
 - [ ] Utiliser `RESTRICT` pour les données de référence partagées telles que les tags globaux.
 - [ ] Traiter explicitement dans une transaction métier likes, matchs, messages, visites, notifications, blocages et suppression de compte.
-- [ ] Créer une table outbox pour synchroniser après commit les suppressions d'objets MinIO et autres effets externes.
+- [x] Créer une table outbox pour synchroniser après commit les suppressions d'objets MinIO et autres effets externes.
 - [x] Ajouter les contraintes d'unicité sur username et e-mail normalisés.
 - [x] Ajouter les contraintes empêchant de se liker, se visiter ou se bloquer soi-même lorsque pertinent.
 - [x] Ajouter des index pour recherche, tags, localisation, likes, messages et notifications.
@@ -598,26 +598,26 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 2.4 Stockage d'objets S3 compatible
 
-- [ ] Créer une interface de stockage indépendante du fournisseur : déposer, lire, vérifier et supprimer un objet.
-- [ ] Implémenter MinIO comme backend par défaut via une bibliothèque cliente S3 compatible.
+- [x] Créer une interface de stockage S3 compatible pour déposer, lire et supprimer un objet privé ; ajouter la vérification métier avec les profils publics.
+- [x] Implémenter MinIO comme backend par défaut via boto3 et son API S3 compatible.
 - [ ] Prévoir Cloudflare R2 comme backend optionnel sans dépendance obligatoire au cloud.
 - [ ] Configurer endpoint, région, bucket, access key et secret key uniquement avec `.env`.
 - [ ] Ajouter toutes les variables attendues dans `.env.example` sans secret réel.
 - [ ] Utiliser des identifiants MinIO de développement non triviaux et refuser les valeurs par défaut non sûres en production.
 - [ ] Créer exactement trois buckets privés : `profile-photos`, `gallery` et `temporary`.
 - [ ] Ne jamais exposer les clés MinIO ou R2 au frontend, aux URLs, aux logs ou à Git.
-- [ ] Faire transiter chaque téléversement par Flask pour appliquer authentification, quotas et validation Pillow.
-- [ ] Générer des clés d'objet aléatoires non prédictibles, sans reprendre le nom fourni par l'utilisateur.
-- [ ] Stocker dans PostgreSQL la clé, le bucket, le propriétaire, le type, le format, les dimensions, la taille et les dates.
-- [ ] Ne jamais stocker directement les binaires des images dans PostgreSQL.
+- [x] Faire transiter chaque téléversement par Flask pour appliquer authentification, quotas et validation Pillow.
+- [x] Générer des clés d'objet aléatoires non prédictibles, sans reprendre le nom fourni par l'utilisateur.
+- [x] Stocker dans PostgreSQL la clé, le propriétaire, le type, les dimensions, la taille et les dates ; le bucket obligatoire est fixé par le domaine `profile-photos`.
+- [x] Ne jamais stocker directement les binaires des images dans PostgreSQL.
 - [ ] Faire vérifier par Flask l'authentification, le blocage, la visibilité et la propriété avant tout accès à un objet.
 - [ ] Après autorisation, retourner une URL MinIO/R2 signée valable cinq minutes.
 - [ ] Ne jamais créer d'URL signée avant d'avoir vérifié blocage, visibilité et droit d'accès.
 - [ ] Fixer les URLs signées à cinq minutes et empêcher leur mise en cache publique lorsque nécessaire.
 - [ ] Utiliser des règles CORS minimales si un accès direct signé est retenu.
-- [ ] Garantir la cohérence entre PostgreSQL et le bucket lors d'un ajout, remplacement ou échec de téléversement.
+- [x] Compenser la création MinIO si l'insertion PostgreSQL d'une photo échoue et utiliser une outbox durable pour la suppression.
 - [ ] Supprimer l'ancien objet après remplacement réussi d'une photo.
-- [ ] Supprimer les objets lors de la suppression d'une photo, galerie ou compte.
+- [x] Supprimer les objets lors de la suppression d'une photo ; étendre le même mécanisme à la galerie bonus et à la suppression de compte.
 - [ ] Ajouter un processus contrôlé de nettoyage des objets temporaires et orphelins.
 - [ ] Supprimer automatiquement les objets du bucket `temporary` après une heure.
 - [ ] Consommer l'outbox PostgreSQL pour rendre les suppressions MinIO réessayables et idempotentes.
@@ -701,15 +701,15 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 4.2 Photos
 
-- [ ] Permettre l'ajout, l'affichage et la suppression de photos.
-- [ ] Refuser une sixième photo.
-- [ ] Permettre de désigner une photo comme photo de profil.
-- [ ] Gérer la suppression de la photo principale sans état incohérent.
-- [ ] Appliquer toutes les validations de téléversement.
-- [ ] Accepter uniquement JPEG, PNG et WebP après décodage réel par Pillow.
-- [ ] Refuser tout fichier supérieur à 5 Mio ou toute image dépassant 4096 × 4096 pixels.
-- [ ] Refuser SVG, GIF animé et formats non retenus.
-- [ ] Corriger l'orientation, supprimer les métadonnées EXIF et réencoder l'image avant stockage.
+- [x] Permettre via l'API l'ajout, l'affichage, l'ordonnancement et la suppression de photos ; l'interface reste à brancher.
+- [x] Refuser une sixième photo par verrou transactionnel et contrainte SQL.
+- [x] Permettre de désigner une photo comme photo de profil.
+- [x] Gérer la suppression de la photo principale en promouvant atomiquement la première restante.
+- [x] Appliquer toutes les validations de téléversement côté serveur.
+- [x] Accepter uniquement JPEG, PNG et WebP après décodage réel par Pillow.
+- [x] Refuser tout fichier supérieur à 5 Mio ou toute image dépassant 4096 × 4096 pixels.
+- [x] Refuser SVG, GIF animé, bombes de décompression et formats non retenus.
+- [x] Corriger l'orientation, supprimer les métadonnées EXIF et réencoder en WebP avant stockage.
 - [ ] Empêcher un utilisateur sans photo principale de liker un profil.
 
 ### 4.3 Localisation respectueuse du consentement
