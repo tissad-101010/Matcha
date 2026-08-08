@@ -746,8 +746,8 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 ### 5.1 Compatibilité des profils
 
 - [ ] Implémenter les règles de compatibilité dans les deux sens.
-- [ ] Gérer correctement hétérosexualité, homosexualité et bisexualité.
-- [ ] Traiter une préférence non renseignée comme l'ensemble de tous les genres lorsque le consentement sensible est actif.
+- [x] Gérer dans le domaine backend les compatibilités hétérosexuelles, homosexuelles et préférences portant sur plusieurs genres.
+- [x] Traiter une préférence non renseignée comme l'ensemble de tous les genres lorsque le consentement sensible est actif.
 - [ ] Exclure l'utilisateur courant.
 - [ ] Exclure les comptes bloqués dans les deux sens.
 - [ ] Exclure systématiquement les profils incomplets, inactifs et non vérifiés des suggestions, recherches et consultations directes.
