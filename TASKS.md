@@ -687,7 +687,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [ ] Recueillir séparément le consentement GPS ; ne jamais fusionner les deux consentements.
 - [ ] Permettre de consulter et retirer chaque consentement aussi facilement qu'il a été donné.
 - [ ] Après retrait du consentement aux préférences, effacer la valeur et suspendre suggestions, recherche et matching jusqu'à nouveau consentement.
-- [ ] Permettre d'ajouter et retirer des tags réutilisables.
+- [x] Permettre via l'API d'ajouter des tags réutilisables et de remplacer la sélection du profil ; l'interface onboarding reste à brancher.
 - [ ] Permettre de modifier prénom, nom et adresse e-mail.
 - [ ] Lors d'une modification d'e-mail, conserver l'ancienne adresse active jusqu'à validation du lien unique envoyé à la nouvelle adresse.
 - [ ] Vérifier à nouveau l'unicité de la nouvelle adresse avant de finaliser la modification.

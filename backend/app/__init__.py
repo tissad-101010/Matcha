@@ -8,6 +8,7 @@ from app.extensions import init_extensions
 from app.routes.auth import auth_blueprint, csrf_blueprint
 from app.routes.health import health_blueprint
 from app.routes.profile import profile_blueprint
+from app.routes.tags import tags_blueprint
 
 
 def create_app(test_config: dict[str, object] | None = None) -> Flask:
@@ -24,5 +25,6 @@ def create_app(test_config: dict[str, object] | None = None) -> Flask:
     app.register_blueprint(csrf_blueprint)
     app.register_blueprint(health_blueprint)
     app.register_blueprint(profile_blueprint)
+    app.register_blueprint(tags_blueprint)
 
     return app
