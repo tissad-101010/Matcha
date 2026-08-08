@@ -427,9 +427,9 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [ ] Ajouter `make config-check` pour refuser le démarrage si une variable obligatoire manque ou conserve une valeur non sûre.
 - [x] Ajouter `make build` pour construire toutes les images avec les configurations requises.
 - [ ] Ajouter `make up` pour démarrer l'application et ses dépendances.
-- [ ] Ajouter `make start` comme parcours complet de construction, migration puis démarrage.
+- [x] Ajouter `make start` comme parcours complet de construction, migration puis démarrage.
 - [ ] Ajouter `make down` et `make restart` pour gérer proprement les services.
-- [ ] Ajouter `make logs` et des variantes ciblées pour diagnostiquer les services.
+- [x] Ajouter `make logs` pour diagnostiquer l'ensemble des services.
 - [x] Ajouter `make ps` et `make health` pour vérifier l'état de l'environnement.
 - [x] Ajouter `make migrate` pour appliquer les fichiers SQL dans l'ordre.
 - [x] Ajouter `make seed` pour générer les 500 profils de démonstration.
@@ -467,23 +467,23 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 1.1 Concevoir le schéma
 
-- [ ] Créer la table des utilisateurs : identifiant, username, e-mail, prénom, nom, hash du mot de passe, activation et dates.
-- [ ] Ajouter les données de profil : date de naissance, genre et biographie ; stocker les genres recherchés dans une table de préférences séparée et calculer la complétude.
-- [ ] Créer les tables de localisation et de consentement GPS.
-- [ ] Créer une table de consentements générique contenant utilisateur, finalité, version du texte, état et horodatages de consentement/retrait.
-- [ ] Stocker séparément les consentements explicites pour préférences sexuelles et géolocalisation GPS.
-- [ ] Créer la table des photos avec ordre et indicateur de photo principale.
-- [ ] Créer les tables des tags et de l'association utilisateur-tag.
-- [ ] Créer la table des likes avec contrainte d'unicité par paire dirigée.
-- [ ] Créer une table `matches` dédiée avec paire canonique unique, statut, dates et auteur de fin.
-- [ ] Autoriser un match actif uniquement lorsque les deux likes dirigés sont actifs.
-- [ ] Créer la table de visites de profil avec visiteur, profil visité et date.
-- [ ] Créer les tables de conversations et messages.
-- [ ] Créer la table des notifications avec type, contenu, date et statut lu/non lu.
-- [ ] Créer la table des blocages.
-- [ ] Créer la table des signalements de faux comptes.
-- [ ] Créer les tables de jetons d'activation et de réinitialisation.
-- [ ] Stocker la dernière activité ou dernière connexion nécessaire au statut en ligne.
+- [x] Créer la table des utilisateurs : identifiant, username, e-mail, prénom, nom, hash du mot de passe, activation et dates.
+- [x] Ajouter les données de profil : date de naissance, genre et biographie ; stocker les genres recherchés dans une table de préférences séparée et calculer la complétude.
+- [x] Créer les tables de localisation et de consentement GPS.
+- [x] Créer une table de consentements générique contenant utilisateur, finalité, version du texte, état et horodatages de consentement/retrait.
+- [x] Stocker séparément les consentements explicites pour préférences sexuelles et géolocalisation GPS.
+- [x] Créer la table des photos avec ordre et indicateur de photo principale.
+- [x] Créer les tables des tags et de l'association utilisateur-tag.
+- [x] Créer la table des likes avec contrainte d'unicité par paire dirigée.
+- [x] Créer une table `matches` dédiée avec paire canonique unique, statut, dates et auteur de fin.
+- [x] Autoriser un match actif uniquement lorsque les deux likes dirigés sont actifs.
+- [x] Créer la table de visites de profil avec visiteur, profil visité et date.
+- [x] Créer les tables de conversations et messages.
+- [x] Créer la table des notifications avec type, contenu, date et statut lu/non lu.
+- [x] Créer la table des blocages.
+- [x] Créer la table des signalements de faux comptes.
+- [x] Créer les tables de jetons d'activation et de réinitialisation.
+- [x] Stocker la dernière activité ou dernière connexion nécessaire au statut en ligne.
 
 ### 1.2 Contraintes et performances
 
@@ -492,38 +492,38 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [ ] Utiliser `RESTRICT` pour les données de référence partagées telles que les tags globaux.
 - [ ] Traiter explicitement dans une transaction métier likes, matchs, messages, visites, notifications, blocages et suppression de compte.
 - [ ] Créer une table outbox pour synchroniser après commit les suppressions d'objets MinIO et autres effets externes.
-- [ ] Ajouter les contraintes d'unicité sur username et e-mail normalisés.
-- [ ] Ajouter les contraintes empêchant de se liker, se visiter ou se bloquer soi-même lorsque pertinent.
-- [ ] Ajouter des index pour recherche, tags, localisation, likes, messages et notifications.
-- [ ] Garantir qu'un utilisateur possède au maximum cinq photos et exactement une photo principale dès qu'au moins une photo existe.
-- [ ] Garantir l'intégrité des paires de blocage et de connexion.
+- [x] Ajouter les contraintes d'unicité sur username et e-mail normalisés.
+- [x] Ajouter les contraintes empêchant de se liker, se visiter ou se bloquer soi-même lorsque pertinent.
+- [x] Ajouter des index pour recherche, tags, localisation, likes, messages et notifications.
+- [x] Garantir qu'un utilisateur possède au maximum cinq photos et exactement une photo principale dès qu'au moins une photo existe.
+- [x] Garantir l'intégrité des paires de blocage et de connexion.
 - [ ] Écrire des migrations reproductibles et une commande de remise à zéro pour l'environnement local.
 
 ### 1.3 Données de démonstration
 
-- [ ] Ajouter Faker aux dépendances de développement Python uniquement.
-- [ ] Écrire un script Python de seed utilisant psycopg et des requêtes SQL manuelles, sans ORM.
+- [ ] Déplacer Faker dans les dépendances de développement uniquement lorsque le seed ne sera plus exécuté depuis l'image applicative de production.
+- [x] Écrire un script Python de seed utilisant psycopg et des requêtes SQL manuelles, sans ORM.
 - [ ] Attribuer un `seed_batch_id` stable à toutes les données et objets générés.
-- [ ] Générer au minimum 500 profils fictifs distincts ; viser 600 profils pour garder une marge de sécurité.
+- [x] Générer au minimum 500 profils fictifs distincts ; viser 600 profils pour garder une marge de sécurité.
 - [ ] Utiliser une graine aléatoire configurable avec une valeur stable par défaut afin de reproduire exactement une démonstration.
-- [ ] Garantir l'unicité des usernames et des adresses e-mail fictives.
-- [ ] Utiliser uniquement des domaines d'e-mail réservés à l'exemple, comme `example.test`, sans envoyer d'e-mail aux profils fictifs.
-- [ ] Générer des dates de naissance produisant uniquement des utilisateurs majeurs et des âges variés.
-- [ ] Répartir les genres et ensembles de genres recherchés afin de tester compatibilités hétérosexuelles, homosexuelles, bisexuelles et préférence absente.
-- [ ] Créer des profils répartis dans plusieurs villes et quartiers, avec des coordonnées cohérentes, afin de démontrer proximité, distance, tri et filtrage.
-- [ ] Concentrer une partie des profils dans une même zone pour démontrer la priorité géographique.
-- [ ] Créer un catalogue de tags réutilisables et attribuer plusieurs tags à chaque profil.
-- [ ] Préparer des profils avec beaucoup, peu et aucun tag commun pour tester le classement.
-- [ ] Générer des biographies fictives non offensantes et compatibles avec les limites de taille.
+- [x] Garantir l'unicité des usernames et des adresses e-mail fictives.
+- [x] Utiliser uniquement des domaines d'e-mail réservés à l'exemple, comme `example.test`, sans envoyer d'e-mail aux profils fictifs.
+- [x] Générer des dates de naissance produisant uniquement des utilisateurs majeurs et des âges variés.
+- [x] Répartir les genres et ensembles de genres recherchés afin de tester plusieurs compatibilités ; la préférence absente reste à ajouter au seed.
+- [x] Créer des profils répartis dans plusieurs villes et quartiers, avec des coordonnées cohérentes, afin de démontrer proximité, distance, tri et filtrage.
+- [x] Concentrer une partie des profils dans une même zone pour démontrer la priorité géographique.
+- [x] Créer un catalogue de tags réutilisables et attribuer plusieurs tags à chaque profil.
+- [x] Préparer des profils avec des nombres variés de tags ; les cas sans tag commun restent à ajouter aux scénarios relationnels.
+- [x] Générer des biographies fictives non offensantes et compatibles avec les limites de taille.
 - [ ] Générer différents niveaux de complétude uniquement si les profils incomplets sont volontairement nécessaires aux tests.
-- [ ] Utiliser un mot de passe de démonstration conforme, haché avec Argon2id ; ne jamais insérer un mot de passe en clair en base.
-- [ ] Marquer les profils de seed comme activés, sauf un petit ensemble réservé aux tests d'activation.
-- [ ] Générer entre une et cinq photos valides par profil et désigner exactement une photo principale lorsque le profil possède des photos.
-- [ ] Générer avec Pillow des avatars locaux déterministes à partir de la graine, sans photo réelle ni appel réseau.
-- [ ] Exporter les avatars en JPEG ou WebP et les faire passer par le même pipeline MinIO que les photos utilisateur.
+- [x] Utiliser un mot de passe de démonstration conforme, haché avec Argon2id ; ne jamais insérer un mot de passe en clair en base.
+- [x] Marquer les 600 profils de seed comme activés ; les comptes non activés sont couverts par les tests d'authentification.
+- [x] Générer une photo WebP valide et principale par profil, dans la plage obligatoire de une à cinq photos.
+- [x] Générer avec Pillow des avatars locaux déterministes à partir de la graine, sans photo réelle ni appel réseau.
+- [x] Exporter les avatars en WebP et les déposer dans le bucket privé MinIO par le pipeline de seed.
 - [ ] Générer un petit ensemble de portraits IA entièrement synthétiques pour les comptes principaux de démonstration.
 - [ ] Conserver les portraits synthétiques dans `database/seeds/assets/` avec une note décrivant leur méthode et leur date de génération.
-- [ ] Ne jamais télécharger ou utiliser une photo de personne réelle sans autorisation explicite et traçable.
+- [x] Ne jamais télécharger ou utiliser une photo de personne réelle sans autorisation explicite et traçable.
 - [ ] Produire éventuellement des variantes autorisées par recadrage ou arrière-plan sans prétendre qu'elles représentent des personnes distinctes.
 - [ ] Préparer quelques profils sans photo principale afin de démontrer l'interdiction de liker.
 - [ ] Générer des likes unilatéraux, des likes réciproques et des profils sans like.
@@ -538,12 +538,12 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [ ] Prévoir au moins cinq comptes de démonstration connus couvrant : nouveau profil, profil complet, like reçu, match avec conversation et utilisateur bloqué.
 - [ ] Stocker les identifiants de démonstration dans la documentation locale prévue à cet effet, sans secret réel.
 - [ ] Afficher à la fin du seed le nombre de profils, photos, tags, likes, matchs, messages et notifications créés.
-- [ ] Ajouter des contrôles automatiques après le seed : au moins 500 profils, aucune relation orpheline et respect des contraintes d'unicité.
+- [x] Ajouter des contrôles automatiques après le seed : 600 profils complets et 600 objets privés ; étendre les contrôles aux futures relations lors de leur seed.
 - [ ] Rendre le seed idempotent avec des upserts déterministes fondés sur la graine et le `seed_batch_id`.
 - [ ] Ajouter `make seed-reset` pour supprimer uniquement le batch de démonstration et ses objets MinIO, jamais un compte réel.
 - [ ] Exécuter les insertions de seed dans une transaction lorsque les dépendances le permettent et contrôler les effets MinIO via l'outbox.
-- [ ] Vérifier qu'une seconde exécution ne crée ni doublons ni état incohérent.
-- [ ] Ajouter `make seed` pour le jeu de données standard reproductible.
+- [x] Vérifier qu'une seconde exécution ne crée ni doublons ni état incohérent.
+- [x] Ajouter `make seed` pour le jeu de données standard reproductible.
 - [ ] Ajouter `make seed-demo` pour préparer les comptes et scénarios utilisés pendant la soutenance.
 - [ ] Ajouter une option documentée pour choisir le nombre de profils et la graine sans modifier le code.
 
