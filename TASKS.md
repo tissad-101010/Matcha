@@ -679,21 +679,21 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 4.1 Compléter et modifier le profil
 
-- [ ] Créer le parcours de complétion après la première connexion.
-- [ ] Refuser l'inscription avant création du compte lorsque la date de naissance indique moins de 18 ans.
+- [x] Créer le parcours frontend de complétion après la première connexion avec profil, préférences consenties, tags et localisation manuelle.
+- [x] Refuser l'inscription avant création du compte lorsque la date de naissance indique moins de 18 ans.
 - [ ] Calculer l'âge côté serveur et ne jamais accepter un âge fourni comme valeur faisant autorité.
-- [ ] Permettre de définir genre, préférences sexuelles, date de naissance et biographie.
-- [ ] Recueillir avant les préférences sexuelles un consentement explicite distinct, non précoché, informé, horodaté et versionné.
+- [x] Permettre de définir genre, préférences sexuelles, date de naissance et biographie via l'API et l'onboarding.
+- [x] Recueillir avant les préférences sexuelles un consentement explicite distinct, non précoché, informé, horodaté et versionné.
 - [ ] Recueillir séparément le consentement GPS ; ne jamais fusionner les deux consentements.
 - [ ] Permettre de consulter et retirer chaque consentement aussi facilement qu'il a été donné.
-- [ ] Après retrait du consentement aux préférences, effacer la valeur et suspendre suggestions, recherche et matching jusqu'à nouveau consentement.
+- [x] Après retrait du consentement aux préférences, effacer la valeur et suspendre suggestions, recherche et matching jusqu'à nouveau consentement.
 - [x] Permettre via l'API d'ajouter des tags réutilisables et de remplacer la sélection du profil ; l'interface onboarding reste à brancher.
 - [ ] Permettre de modifier prénom, nom et adresse e-mail.
 - [ ] Lors d'une modification d'e-mail, conserver l'ancienne adresse active jusqu'à validation du lien unique envoyé à la nouvelle adresse.
 - [ ] Vérifier à nouveau l'unicité de la nouvelle adresse avant de finaliser la modification.
 - [ ] Permettre toutes ces modifications à tout moment.
 - [ ] Afficher clairement les informations manquantes qui bloquent le matching.
-- [ ] Considérer le profil complet uniquement avec majorité, genre, biographie non vide, au moins un tag et une localisation valide.
+- [x] Considérer le profil complet uniquement avec majorité, genre, biographie non vide, au moins un tag et une localisation valide.
 - [ ] Exclure des découvertes les comptes incomplets, inactifs et non vérifiés et rendre leur profil direct indisponible aux autres membres.
 - [ ] Ajouter une suppression de compte protégée par mot de passe ou réauthentification récente.
 - [ ] À la suppression, révoquer immédiatement sessions et sockets puis lancer la suppression transactionnelle et l'outbox MinIO.

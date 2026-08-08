@@ -9,11 +9,23 @@ export class ApiRequestError extends Error {
 }
 
 export async function postJson<T>(path: string, body: unknown): Promise<T> {
+  return requestJson<T>(path, 'POST', body)
+}
+
+export async function requestJson<T>(
+  path: string,
+  method = 'GET',
+  body?: unknown,
+  csrfToken?: string,
+): Promise<T> {
   const response = await fetch(`/api/v1${path}`, {
-    method: 'POST',
+    method,
     credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    headers: {
+      ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+      ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+    },
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   })
   const payload: unknown =
     response.status === 204 ? null : await response.json()

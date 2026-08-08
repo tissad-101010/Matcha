@@ -1,0 +1,379 @@
+import { type ReactNode, type SyntheticEvent, useEffect, useState } from 'react'
+
+import { buttonClass, fieldClass } from '../auth/AuthLayout'
+import { errorMessage, requestJson } from '../auth/api'
+import { StatusMessage } from '../auth/StatusMessage'
+import { navigate } from '../navigation'
+import type { Gender, LocationSuggestion, PrivateProfile, Tag } from './types'
+
+const genders: Array<[Gender, string]> = [
+  ['man', 'Homme'],
+  ['woman', 'Femme'],
+  ['non_binary', 'Non-binaire'],
+]
+
+type LoadedData = {
+  profile: PrivateProfile
+  tags: Tag[]
+  locations: LocationSuggestion[]
+  csrfToken: string
+  policyVersion: string
+}
+
+export function OnboardingPage() {
+  const [loaded, setLoaded] = useState<LoadedData | null>(null)
+  const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    void loadOnboarding()
+      .then(setLoaded)
+      .catch((reason: unknown) => {
+        setError(errorMessage(reason))
+      })
+  }, [])
+
+  async function submit(event: SyntheticEvent<HTMLFormElement, SubmitEvent>) {
+    event.preventDefault()
+    if (!loaded) return
+    const form = new FormData(event.currentTarget)
+    const desiredGenders = form.getAll('desired_genders') as Gender[]
+    const tagIds = form.getAll('tag_ids') as string[]
+    const consentConfirmed = form.get('preferences_consent') === 'on'
+    setSaving(true)
+    setError('')
+    try {
+      await requestJson(
+        '/me/profile',
+        'PATCH',
+        {
+          first_name: form.get('first_name'),
+          last_name: form.get('last_name'),
+          birth_date: form.get('birth_date'),
+          gender: form.get('gender'),
+          bio: form.get('bio'),
+        },
+        loaded.csrfToken,
+      )
+      if (!consentConfirmed) {
+        throw new Error(
+          'Le consentement aux préférences est nécessaire pour activer le matching.',
+        )
+      }
+      await requestJson(
+        '/me/consents/preferences',
+        'PUT',
+        {
+          confirmed: true,
+          policy_version: loaded.policyVersion,
+        },
+        loaded.csrfToken,
+      )
+      await requestJson(
+        '/me/preferences',
+        'PUT',
+        {
+          desired_genders: desiredGenders,
+        },
+        loaded.csrfToken,
+      )
+      await requestJson(
+        '/me/tags',
+        'PUT',
+        { tag_ids: tagIds },
+        loaded.csrfToken,
+      )
+      await requestJson(
+        '/me/location/manual',
+        'PUT',
+        {
+          catalog_location_id: form.get('catalog_location_id'),
+        },
+        loaded.csrfToken,
+      )
+      navigate('/discover')
+    } catch (reason) {
+      setError(errorMessage(reason))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!loaded) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-[#fffaf7] p-6 text-[#35102d]">
+        <div className="text-center">
+          <p className="text-2xl font-bold">matcha</p>
+          <p className="mt-3" role="status">
+            {error || 'Chargement de votre profil…'}
+          </p>
+          {error && (
+            <button
+              className="mt-5 font-semibold text-[#d43d37]"
+              onClick={() => {
+                navigate('/')
+              }}
+            >
+              Se reconnecter
+            </button>
+          )}
+        </div>
+      </main>
+    )
+  }
+
+  const consentActive = loaded.profile.consents.some(
+    (consent) => consent.purpose === 'matching_preferences' && consent.granted,
+  )
+  return (
+    <main className="min-h-screen bg-[#fffaf7] px-4 py-8 text-[#281320] sm:px-8">
+      <form
+        className="mx-auto max-w-5xl"
+        onSubmit={(event) => void submit(event)}
+      >
+        <header className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-2xl font-bold text-[#35102d]">♥ matcha</p>
+            <p className="mt-1 text-sm text-[#755f6d]">
+              Complétez les informations obligatoires pour découvrir des profils
+              compatibles.
+            </p>
+          </div>
+          <p className="rounded-full bg-white px-4 py-2 text-sm shadow-sm">
+            Photos facultatives · 0 à 5
+          </p>
+        </header>
+        <StatusMessage message={error} />
+        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+          <OnboardingSection number="1" title="Votre profil">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField
+                name="first_name"
+                label="Prénom"
+                value={loaded.profile.first_name}
+              />
+              <TextField
+                name="last_name"
+                label="Nom"
+                value={loaded.profile.last_name}
+              />
+            </div>
+            <label className="block text-sm font-medium">
+              Date de naissance
+              <input
+                className={fieldClass}
+                name="birth_date"
+                type="date"
+                defaultValue={loaded.profile.birth_date}
+                required
+              />
+            </label>
+            <label className="block text-sm font-medium">
+              Genre
+              <select
+                className={fieldClass}
+                name="gender"
+                defaultValue={loaded.profile.gender ?? ''}
+                required
+              >
+                <option value="" disabled>
+                  Choisir
+                </option>
+                {genders.map(([value, label]) => (
+                  <option value={value} key={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block text-sm font-medium">
+              Biographie
+              <textarea
+                className={`${fieldClass} min-h-28`}
+                name="bio"
+                maxLength={1000}
+                defaultValue={loaded.profile.bio ?? ''}
+                required
+              />
+            </label>
+          </OnboardingSection>
+          <OnboardingSection number="2" title="Préférences et consentement">
+            <p className="text-sm leading-6 text-[#755f6d]">
+              Ces données servent uniquement à calculer une compatibilité
+              mutuelle. Sans consentement, la découverte et le matching restent
+              suspendus.
+            </p>
+            <fieldset>
+              <legend className="text-sm font-semibold">
+                Genres recherchés
+              </legend>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {genders.map(([value, label]) => (
+                  <Choice
+                    key={value}
+                    name="desired_genders"
+                    value={value}
+                    label={label}
+                    checked={loaded.profile.desired_genders.includes(value)}
+                  />
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-[#755f6d]">
+                Aucun choix signifie tous les genres.
+              </p>
+            </fieldset>
+            <label className="flex gap-3 rounded-xl border border-[#efdeda] bg-[#fffaf7] p-4 text-sm">
+              <input
+                name="preferences_consent"
+                type="checkbox"
+                defaultChecked={consentActive}
+                required
+              />
+              <span>
+                Je consens explicitement au traitement de mes préférences pour
+                le matching. Consentement retirable à tout moment.
+              </span>
+            </label>
+          </OnboardingSection>
+          <OnboardingSection number="3" title="Centres d’intérêt">
+            <p className="text-sm text-[#755f6d]">
+              Choisissez entre 1 et 10 tags réutilisables.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {loaded.tags.map((tag) => (
+                <Choice
+                  key={tag.id}
+                  name="tag_ids"
+                  value={tag.id}
+                  label={tag.name}
+                  checked={loaded.profile.tags.some(
+                    (selected) => selected.id === tag.id,
+                  )}
+                />
+              ))}
+            </div>
+          </OnboardingSection>
+          <OnboardingSection number="4" title="Localisation approximative">
+            <p className="text-sm leading-6 text-[#755f6d]">
+              Choisissez une ville du catalogue local. Aucune coordonnée exacte
+              n’est affichée ni conservée.
+            </p>
+            <label className="block text-sm font-medium">
+              Ville ou quartier
+              <select
+                className={fieldClass}
+                name="catalog_location_id"
+                defaultValue={
+                  loaded.profile.location?.catalog_location_id ?? ''
+                }
+                required
+              >
+                <option value="" disabled>
+                  Choisir une localisation
+                </option>
+                {loaded.locations.map((location) => (
+                  <option key={location.id} value={location.id}>
+                    {location.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="rounded-xl bg-[#f7f0f4] p-4 text-sm text-[#755f6d]">
+              La géolocalisation GPS facultative sera proposée séparément avec
+              son propre consentement. La saisie manuelle garantit le
+              fonctionnement hors ligne.
+            </div>
+          </OnboardingSection>
+        </div>
+        <div className="mx-auto mt-8 max-w-md">
+          <button className={buttonClass} disabled={saving}>
+            {saving ? 'Enregistrement…' : 'Enregistrer et découvrir'}
+          </button>
+        </div>
+      </form>
+    </main>
+  )
+}
+
+async function loadOnboarding(): Promise<LoadedData> {
+  const session = await requestJson<{ data: { csrf_token: string } }>(
+    '/auth/session',
+  )
+  const [profile, tags, locations, consents] = await Promise.all([
+    requestJson<{ data: PrivateProfile }>('/me/profile'),
+    requestJson<{ data: Tag[] }>('/tags?limit=20'),
+    requestJson<{ data: LocationSuggestion[] }>('/locations?limit=20'),
+    requestJson<{ meta: { current_policy_version: string } }>('/me/consents'),
+  ])
+  return {
+    profile: profile.data,
+    tags: tags.data,
+    locations: locations.data,
+    csrfToken: session.data.csrf_token,
+    policyVersion: consents.meta.current_policy_version,
+  }
+}
+
+function OnboardingSection({
+  number,
+  title,
+  children,
+}: {
+  number: string
+  title: string
+  children: ReactNode
+}) {
+  return (
+    <section className="space-y-5 rounded-3xl border border-[#efdeda] bg-white p-6 shadow-sm">
+      <div className="flex items-center gap-3">
+        <span className="grid size-8 place-items-center rounded-full bg-[#ff5149] text-sm font-bold text-white">
+          {number}
+        </span>
+        <h1 className="text-xl font-bold text-[#35102d]">{title}</h1>
+      </div>
+      {children}
+    </section>
+  )
+}
+
+function TextField({
+  name,
+  label,
+  value,
+}: {
+  name: string
+  label: string
+  value: string
+}) {
+  return (
+    <label className="block text-sm font-medium">
+      {label}
+      <input className={fieldClass} name={name} defaultValue={value} required />
+    </label>
+  )
+}
+
+function Choice({
+  name,
+  value,
+  label,
+  checked,
+}: {
+  name: string
+  value: string
+  label: string
+  checked: boolean
+}) {
+  return (
+    <label className="cursor-pointer rounded-full border border-[#dfd1d7] px-4 py-2 text-sm has-checked:border-[#ff5149] has-checked:bg-[#fff0ef]">
+      <input
+        className="sr-only"
+        type="checkbox"
+        name={name}
+        value={value}
+        defaultChecked={checked}
+      />
+      {label}
+    </label>
+  )
+}

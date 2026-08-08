@@ -89,7 +89,12 @@ def read_consents():  # type: ignore[no-untyped-def]
     profile = private_profile(
         str(current_app.config["DATABASE_URL"]), authenticated_user_id() or ""
     )
-    return jsonify({"data": profile["consents"] if profile else []})
+    return jsonify(
+        {
+            "data": profile["consents"] if profile else [],
+            "meta": {"current_policy_version": current_app.config["CONSENT_POLICY_VERSION"]},
+        }
+    )
 
 
 @profile_blueprint.put("/consents/preferences")

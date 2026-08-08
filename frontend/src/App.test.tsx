@@ -1,10 +1,13 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { App } from './App'
 
 describe('authentication experience', () => {
-  afterEach(cleanup)
+  afterEach(() => {
+    cleanup()
+    vi.unstubAllGlobals()
+  })
   beforeEach(() => {
     window.history.replaceState({}, '', '/')
   })
@@ -33,5 +36,59 @@ describe('authentication experience', () => {
     expect(screen.getByLabelText('E-mail')).toBeRequired()
     expect(screen.getByLabelText('Date de naissance')).toBeRequired()
     expect(screen.getByLabelText('Mot de passe')).toBeRequired()
+  })
+
+  it('loads the mandatory onboarding from real API contracts', async () => {
+    window.history.replaceState({}, '', '/onboarding')
+    const responses = [
+      { data: { csrf_token: 'csrf' } },
+      {
+        data: {
+          first_name: 'Ada',
+          last_name: 'Lovelace',
+          birth_date: '1990-12-10',
+          gender: null,
+          bio: null,
+          desired_genders: [],
+          tags: [],
+          location: null,
+          consents: [],
+          profile_complete: false,
+          missing_profile_fields: ['gender', 'bio', 'tags', 'location'],
+        },
+      },
+      { data: [{ id: 'tag-1', name: 'Cinéma' }] },
+      {
+        data: [
+          {
+            id: 'location-1',
+            city: 'Paris',
+            district: null,
+            label: 'Paris',
+          },
+        ],
+      },
+      { data: [], meta: { current_policy_version: '2026-08' } },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(responses.shift()),
+        }),
+      ),
+    )
+
+    render(<App />)
+
+    expect(
+      await screen.findByRole('heading', { name: 'Votre profil' }),
+    ).toBeVisible()
+    expect(screen.getByText('Préférences et consentement')).toBeVisible()
+    expect(screen.getByText('Centres d’intérêt')).toBeVisible()
+    expect(screen.getByText('Localisation approximative')).toBeVisible()
+    expect(screen.getByLabelText(/je consens explicitement/i)).not.toBeChecked()
   })
 })
