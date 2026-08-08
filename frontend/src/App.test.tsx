@@ -51,6 +51,7 @@ describe('authentication experience', () => {
           bio: null,
           desired_genders: [],
           tags: [],
+          photos: [],
           location: null,
           consents: [],
           profile_complete: false,
@@ -89,6 +90,7 @@ describe('authentication experience', () => {
     expect(screen.getByText('Préférences et consentement')).toBeVisible()
     expect(screen.getByText('Centres d’intérêt')).toBeVisible()
     expect(screen.getByText('Localisation approximative')).toBeVisible()
+    expect(screen.getByText('Photos facultatives')).toBeVisible()
     expect(screen.getByLabelText(/je consens explicitement/i)).not.toBeChecked()
   })
 })

@@ -1,10 +1,16 @@
 import { type ReactNode, type SyntheticEvent, useEffect, useState } from 'react'
 
 import { buttonClass, fieldClass } from '../auth/AuthLayout'
-import { errorMessage, requestJson } from '../auth/api'
+import { errorMessage, requestJson, uploadFile } from '../auth/api'
 import { StatusMessage } from '../auth/StatusMessage'
 import { navigate } from '../navigation'
-import type { Gender, LocationSuggestion, PrivateProfile, Tag } from './types'
+import type {
+  Gender,
+  LocationSuggestion,
+  PhotoSummary,
+  PrivateProfile,
+  Tag,
+} from './types'
 
 const genders: Array<[Gender, string]> = [
   ['man', 'Homme'],
@@ -24,10 +30,15 @@ export function OnboardingPage() {
   const [loaded, setLoaded] = useState<LoadedData | null>(null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [photos, setPhotos] = useState<PhotoSummary[]>([])
+  const [photoBusy, setPhotoBusy] = useState(false)
 
   useEffect(() => {
     void loadOnboarding()
-      .then(setLoaded)
+      .then((data) => {
+        setLoaded(data)
+        setPhotos(data.profile.photos)
+      })
       .catch((reason: unknown) => {
         setError(errorMessage(reason))
       })
@@ -96,6 +107,70 @@ export function OnboardingPage() {
       setError(errorMessage(reason))
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function addPhoto(file: File | undefined) {
+    if (!loaded || !file) return
+    setPhotoBusy(true)
+    setError('')
+    try {
+      const response = await uploadFile<{ data: PhotoSummary }>(
+        '/me/photos',
+        file,
+        loaded.csrfToken,
+      )
+      setPhotos((current) => [...current, response.data])
+    } catch (reason) {
+      setError(errorMessage(reason))
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
+
+  async function makeMain(photoId: string) {
+    if (!loaded) return
+    setPhotoBusy(true)
+    try {
+      const response = await requestJson<{ data: PhotoSummary[] }>(
+        `/me/photos/${photoId}`,
+        'PATCH',
+        { is_main: true },
+        loaded.csrfToken,
+      )
+      setPhotos(response.data)
+    } catch (reason) {
+      setError(errorMessage(reason))
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
+
+  async function deletePhoto(photoId: string) {
+    if (!loaded) return
+    setPhotoBusy(true)
+    try {
+      await requestJson(
+        `/me/photos/${photoId}`,
+        'DELETE',
+        undefined,
+        loaded.csrfToken,
+      )
+      setPhotos((current) => {
+        const remaining = current.filter((photo) => photo.id !== photoId)
+        const first = remaining[0]
+        if (first && !remaining.some((photo) => photo.is_main)) {
+          remaining[0] = { ...first, is_main: true }
+        }
+        return remaining.map((photo, index) => ({
+          ...photo,
+          position: index + 1,
+        }))
+      })
+    } catch (reason) {
+      setError(errorMessage(reason))
+    } finally {
+      setPhotoBusy(false)
     }
   }
 
@@ -283,6 +358,66 @@ export function OnboardingPage() {
               son propre consentement. La saisie manuelle garantit le
               fonctionnement hors ligne.
             </div>
+          </OnboardingSection>
+          <OnboardingSection number="5" title="Photos facultatives">
+            <p className="text-sm leading-6 text-[#755f6d]">
+              Ajoutez jusqu’à cinq images JPEG, PNG ou WebP. Elles sont
+              nettoyées et stockées dans un espace privé. Vous pourrez compléter
+              cette partie plus tard.
+            </p>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {photos.map((photo) => (
+                <article
+                  className="overflow-hidden rounded-2xl border border-[#efdeda]"
+                  key={photo.id}
+                >
+                  <img
+                    className="aspect-square w-full object-cover"
+                    src={photo.url}
+                    alt={`Photo ${String(photo.position)}`}
+                  />
+                  <div className="space-y-2 p-3 text-xs">
+                    <p className="font-semibold">
+                      {photo.is_main
+                        ? 'Photo principale'
+                        : `Position ${String(photo.position)}`}
+                    </p>
+                    {!photo.is_main && (
+                      <button
+                        type="button"
+                        className="block font-semibold text-[#d43d37]"
+                        onClick={() => void makeMain(photo.id)}
+                      >
+                        Définir comme principale
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="block text-[#755f6d]"
+                      disabled={photoBusy}
+                      onClick={() => void deletePhoto(photo.id)}
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <label
+              className={`block rounded-2xl border border-dashed border-[#d9bdc8] p-5 text-center text-sm font-semibold ${photos.length >= 5 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer text-[#d43d37]'}`}
+            >
+              {photoBusy ? 'Traitement sécurisé…' : 'Ajouter une photo'}
+              <input
+                className="sr-only"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                disabled={photoBusy || photos.length >= 5}
+                onChange={(event) => {
+                  void addPhoto(event.target.files?.[0])
+                  event.target.value = ''
+                }}
+              />
+            </label>
           </OnboardingSection>
         </div>
         <div className="mx-auto mt-8 max-w-md">

@@ -8,6 +8,15 @@ export type LocationSuggestion = {
   label: string
 }
 
+export type PhotoSummary = {
+  id: string
+  url: string
+  position: number
+  is_main: boolean
+  width: number
+  height: number
+}
+
 export type PrivateProfile = {
   first_name: string
   last_name: string
@@ -16,6 +25,7 @@ export type PrivateProfile = {
   bio: string | null
   desired_genders: Gender[]
   tags: Tag[]
+  photos: PhotoSummary[]
   location: { catalog_location_id: string; city: string } | null
   consents: Array<{ purpose: string; granted: boolean }>
   profile_complete: boolean

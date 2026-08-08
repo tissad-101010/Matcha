@@ -701,7 +701,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 4.2 Photos
 
-- [x] Permettre via l'API l'ajout, l'affichage, l'ordonnancement et la suppression de photos ; l'interface reste à brancher.
+- [x] Permettre via l'API et l'onboarding l'ajout, l'affichage, le choix de la principale et la suppression de photos ; l'ordonnancement fin reste disponible via l'API.
 - [x] Refuser une sixième photo par verrou transactionnel et contrainte SQL.
 - [x] Permettre de désigner une photo comme photo de profil.
 - [x] Gérer la suppression de la photo principale en promouvant atomiquement la première restante.

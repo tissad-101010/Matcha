@@ -42,6 +42,33 @@ export async function requestJson<T>(
   return payload as T
 }
 
+export async function uploadFile<T>(
+  path: string,
+  file: File,
+  csrfToken: string,
+): Promise<T> {
+  const body = new FormData()
+  body.set('file', file)
+  const response = await fetch(`/api/v1${path}`, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'X-CSRF-Token': csrfToken },
+    body,
+  })
+  const payload: unknown = await response.json()
+  if (!response.ok) {
+    if (hasApiError(payload)) {
+      throw new ApiRequestError(
+        payload.error.message,
+        payload.error.code,
+        payload.error.fields,
+      )
+    }
+    throw new ApiRequestError('Une erreur est survenue. Réessayez.')
+  }
+  return payload as T
+}
+
 function hasApiError(value: unknown): value is {
   error: { code: string; message: string; fields?: Record<string, string> }
 } {
