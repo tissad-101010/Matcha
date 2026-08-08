@@ -745,21 +745,21 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 5.1 Compatibilité des profils
 
-- [ ] Implémenter les règles de compatibilité dans les deux sens.
+- [x] Implémenter les règles de compatibilité dans les deux sens dans le service de suggestions.
 - [x] Gérer dans le domaine backend les compatibilités hétérosexuelles, homosexuelles et préférences portant sur plusieurs genres.
 - [x] Traiter une préférence non renseignée comme l'ensemble de tous les genres lorsque le consentement sensible est actif.
-- [ ] Exclure l'utilisateur courant.
-- [ ] Exclure les comptes bloqués dans les deux sens.
-- [ ] Exclure systématiquement les profils incomplets, inactifs et non vérifiés des suggestions, recherches et consultations directes.
+- [x] Exclure l'utilisateur courant des suggestions.
+- [x] Exclure les comptes bloqués dans les deux sens des suggestions et des photos publiques ; réutiliser la règle pour la recherche.
+- [x] Exclure systématiquement les profils incomplets, inactifs et non vérifiés des suggestions ; réutiliser la règle pour la recherche et les profils directs.
 
 ### 5.2 Suggestions intelligentes
 
-- [ ] Calculer le nombre de tags communs.
-- [ ] Calculer la distance géographique.
-- [ ] Intégrer la note de popularité.
-- [ ] Combiner plusieurs critères dans le classement.
-- [ ] Donner la priorité aux profils de la même zone géographique.
-- [ ] Vérifier avec des tests que le classement respecte réellement ces règles.
+- [x] Calculer le nombre de tags communs.
+- [x] Calculer la distance géographique avec la formule de Haversine.
+- [x] Intégrer la note de popularité stockée et calculée côté serveur.
+- [x] Combiner distance, tags et popularité avec la formule métier validée.
+- [x] Donner une priorité absolue aux profils de la même zone géographique.
+- [x] Vérifier avec des tests que le classement respecte réellement ces règles.
 - [ ] Afficher les informations utiles expliquant la suggestion : distance, tags communs et popularité.
 
 ### 5.3 Tri et filtrage des suggestions

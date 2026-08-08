@@ -71,14 +71,51 @@ def list_photos(database_url: str, user_id: str) -> list[StoredPhoto]:
 
 
 def find_accessible_photo(database_url: str, photo_id: UUID, viewer_id: str) -> StoredPhoto:
-    """Authorize an own photo now; public visibility rules are added with public profiles."""
+    """Authorize own media or a compatible, complete and unblocked public profile."""
     with psycopg.connect(database_url) as connection:
         row = connection.execute(
             """
-            SELECT id, object_key, position, is_main, width, height
-            FROM photos WHERE id = %s AND user_id = %s
+            SELECT photo.id, photo.object_key, photo.position, photo.is_main,
+                   photo.width, photo.height
+            FROM photos AS photo
+            JOIN accounts AS owner ON owner.id = photo.user_id
+            JOIN profiles AS target ON target.user_id = photo.user_id
+            WHERE photo.id = %s AND (
+                photo.user_id = %s OR (
+                    owner.status = 'active'
+                    AND EXISTS (SELECT 1 FROM profile_completeness
+                                WHERE user_id = photo.user_id AND is_complete)
+                    AND EXISTS (SELECT 1 FROM profile_completeness
+                                WHERE user_id = %s AND is_complete)
+                    AND EXISTS (SELECT 1 FROM current_consents WHERE user_id = photo.user_id
+                                AND purpose = 'matching_preferences' AND granted)
+                    AND EXISTS (SELECT 1 FROM current_consents WHERE user_id = %s
+                                AND purpose = 'matching_preferences' AND granted)
+                    AND NOT EXISTS (SELECT 1 FROM blocks WHERE
+                        (blocker_user_id = %s AND blocked_user_id = photo.user_id)
+                        OR (blocker_user_id = photo.user_id AND blocked_user_id = %s))
+                    AND EXISTS (SELECT 1 FROM profiles AS viewer WHERE viewer.user_id = %s
+                        AND (NOT EXISTS (SELECT 1 FROM user_preferences WHERE user_id = %s)
+                             OR target.gender IN (SELECT desired_gender FROM user_preferences
+                                                  WHERE user_id = %s))
+                        AND (NOT EXISTS (SELECT 1 FROM user_preferences
+                                        WHERE user_id = photo.user_id)
+                             OR viewer.gender IN (SELECT desired_gender FROM user_preferences
+                                                  WHERE user_id = photo.user_id)))
+                )
+            )
             """,
-            (photo_id, viewer_id),
+            (
+                photo_id,
+                viewer_id,
+                viewer_id,
+                viewer_id,
+                viewer_id,
+                viewer_id,
+                viewer_id,
+                viewer_id,
+                viewer_id,
+            ),
         ).fetchone()
     if row is None:
         raise PhotoNotFoundError
