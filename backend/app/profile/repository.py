@@ -45,7 +45,8 @@ def get_private_profile(database_url: str, user_id: str) -> dict[str, Any] | Non
         ).fetchall()
         location = connection.execute(
             """
-            SELECT catalog.id, catalog.city_name, catalog.district_name, location.source
+            SELECT catalog.id, catalog.city_name, catalog.district_name, location.source,
+                   location.updated_at
             FROM user_locations AS location
             JOIN location_catalog AS catalog ON catalog.id = location.catalog_location_id
             WHERE location.user_id = %s
@@ -118,8 +119,17 @@ def record_matching_consent(
 
 def _serialize(row, preferences, tags, photos, location, consents):  # type: ignore[no-untyped-def]
     keys = (
-        "id", "username", "email", "pending_email", "first_name", "last_name",
-        "birth_date", "gender", "bio", "created_at", "updated_at",
+        "id",
+        "username",
+        "email",
+        "pending_email",
+        "first_name",
+        "last_name",
+        "birth_date",
+        "gender",
+        "bio",
+        "created_at",
+        "updated_at",
     )
     result = dict(zip(keys, row, strict=True))
     result["id"] = str(result["id"])
@@ -129,16 +139,35 @@ def _serialize(row, preferences, tags, photos, location, consents):  # type: ign
     result["desired_genders"] = [item[0] for item in preferences]
     result["tags"] = [{"id": str(item[0]), "name": item[1]} for item in tags]
     result["photos"] = [
-        {"id": str(item[0]), "mime_type": item[1], "byte_size": item[2], "width": item[3],
-         "height": item[4], "position": item[5], "is_main": item[6]}
+        {
+            "id": str(item[0]),
+            "mime_type": item[1],
+            "byte_size": item[2],
+            "width": item[3],
+            "height": item[4],
+            "position": item[5],
+            "is_main": item[6],
+        }
         for item in photos
     ]
-    result["location"] = None if location is None else {
-        "catalog_location_id": str(location[0]), "city": location[1],
-        "district": location[2], "source": location[3],
-    }
+    result["location"] = (
+        None
+        if location is None
+        else {
+            "catalog_location_id": str(location[0]),
+            "city": location[1],
+            "district": location[2],
+            "source": location[3],
+            "updated_at": location[4].isoformat(),
+        }
+    )
     result["consents"] = [
-        {"purpose": item[0], "granted": item[1], "policy_version": item[2],
-         "occurred_at": item[3].isoformat()} for item in consents
+        {
+            "purpose": item[0],
+            "granted": item[1],
+            "policy_version": item[2],
+            "occurred_at": item[3].isoformat(),
+        }
+        for item in consents
     ]
     return result

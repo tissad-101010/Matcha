@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from flask import Blueprint, current_app, jsonify, request, session
 
 from app.auth.rate_limit import clear_login_limit, login_allowed
-from app.auth.repository import DuplicateAccountError, InvalidTokenError, session_is_current
+from app.auth.repository import DuplicateAccountError, InvalidTokenError
 from app.auth.service import (
     InvalidCredentialsError,
     authenticate,
@@ -17,6 +17,7 @@ from app.auth.service import (
     reset_password,
     verify_email,
 )
+from app.auth.session_access import authenticated_user_id
 from app.auth.validation import (
     InputValidationError,
     validate_email_request,
@@ -38,12 +39,12 @@ def register_account():  # type: ignore[no-untyped-def]
         result = register(current_app.config, data)
     except InputValidationError as error:
         return _error("validation_error", "Certains champs sont invalides.", 422, error.fields)
-    except DuplicateAccountError as error:
+    except DuplicateAccountError:
         return _error(
             "account_conflict",
             "Cette adresse e-mail ou ce nom d’utilisateur est indisponible.",
             409,
-            {error.field: "Cette valeur est déjà utilisée."},
+            {"account": "Ces identifiants ne sont pas disponibles."},
         )
 
     return (
@@ -127,7 +128,7 @@ def login():  # type: ignore[no-untyped-def]
 @auth_blueprint.get("/session")
 def current_session():  # type: ignore[no-untyped-def]
     """Return the current authenticated session without exposing its opaque id."""
-    if not _authenticated_session():
+    if authenticated_user_id() is None:
         return _error("authentication_required", "Authentification requise.", 401, {})
     expires_at = datetime.now(UTC) + current_app.permanent_session_lifetime
     return jsonify(
@@ -146,7 +147,7 @@ def logout():  # type: ignore[no-untyped-def]
     """Revoke the current server-side session after CSRF verification."""
     expected = session.get("csrf_token", "")
     supplied = request.headers.get("X-CSRF-Token", "")
-    if not _authenticated_session():
+    if authenticated_user_id() is None:
         return _error("authentication_required", "Authentification requise.", 401, {})
     if not expected or not hmac.compare_digest(expected, supplied):
         return _error("csrf_failed", "Jeton CSRF invalide.", 403, {})
@@ -212,18 +213,6 @@ def _session_user(account):  # type: ignore[no-untyped-def]
         "has_main_photo": account.has_main_photo,
         "matching_enabled": account.matching_enabled,
     }
-
-
-def _authenticated_session() -> bool:
-    user_id = session.get("user_id")
-    auth_version = session.get("auth_version")
-    if not isinstance(user_id, str) or not isinstance(auth_version, int):
-        return False
-    validator = current_app.config.get("SESSION_VALIDATOR", session_is_current)
-    if not validator(str(current_app.config["DATABASE_URL"]), user_id, auth_version):
-        session.clear()
-        return False
-    return True
 
 
 def _error(code: str, message: str, status: int, fields: dict[str, str]):  # type: ignore[no-untyped-def]

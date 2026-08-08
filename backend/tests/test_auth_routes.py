@@ -60,6 +60,9 @@ def test_register_hides_which_identifier_conflicts(client: FlaskClient, monkeypa
     assert response.get_json()["error"]["message"] == (
         "Cette adresse e-mail ou ce nom d’utilisateur est indisponible."
     )
+    assert response.get_json()["error"]["fields"] == {
+        "account": "Ces identifiants ne sont pas disponibles."
+    }
 
 
 def test_verify_email_returns_the_documented_session_user(client: FlaskClient, monkeypatch) -> None:
@@ -115,8 +118,7 @@ def test_login_session_and_csrf_protected_logout(client: FlaskClient, monkeypatc
     assert client.get("/api/v1/auth/session").get_json()["data"]["user"]["id"] == str(account_id)
     assert client.post("/api/v1/auth/logout").status_code == 403
     assert (
-        client.post("/api/v1/auth/logout", headers={"X-CSRF-Token": csrf_token}).status_code
-        == 204
+        client.post("/api/v1/auth/logout", headers={"X-CSRF-Token": csrf_token}).status_code == 204
     )
     assert client.get("/api/v1/auth/session").status_code == 401
 
@@ -142,9 +144,7 @@ def test_forgot_password_response_is_neutral(client: FlaskClient, monkeypatch) -
         lambda _config, email: requested.append(email),
     )
 
-    existing = client.post(
-        "/api/v1/auth/forgot-password", json={"email": "member@example.test"}
-    )
+    existing = client.post("/api/v1/auth/forgot-password", json={"email": "member@example.test"})
     invalid = client.post("/api/v1/auth/forgot-password", json={"email": "invalid"})
 
     assert existing.status_code == invalid.status_code == 200
@@ -167,9 +167,7 @@ def test_reset_password_returns_no_content(client: FlaskClient, monkeypatch) -> 
 def test_resend_verification_is_neutral(client: FlaskClient, monkeypatch) -> None:
     monkeypatch.setattr("app.routes.auth.resend_verification", lambda *_args: None)
 
-    known = client.post(
-        "/api/v1/auth/resend-verification", json={"email": "member@example.test"}
-    )
+    known = client.post("/api/v1/auth/resend-verification", json={"email": "member@example.test"})
     invalid = client.post("/api/v1/auth/resend-verification", json={"email": "invalid"})
 
     assert known.status_code == invalid.status_code == 200
