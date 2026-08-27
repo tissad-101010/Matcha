@@ -1,5 +1,6 @@
-"""Ranking tests for transparent mandatory suggestions."""
+"""Ranking and filtering tests for transparent mandatory suggestions."""
 
+from dataclasses import replace
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -84,3 +85,51 @@ def test_incompatible_candidate_is_removed_and_page_is_bounded(monkeypatch) -> N
     result = suggestions("database", "viewer", DiscoveryQuery(0, 1))
     assert result["meta"] == {"next_cursor": None, "count": 1}
     assert result["data"][0]["common_tags"] == 1
+
+
+def test_filters_are_combined_before_pagination(monkeypatch) -> None:
+    location_id, tag_id = UUID(int=10), UUID(int=12)
+    viewer = ViewerContext(
+        "woman", ("man",), 48.8566, 2.35, location_id, "Paris", None, frozenset({tag_id})
+    )
+    accepted = replace(
+        candidate(
+            1, location_id=location_id, latitude=48.85, popularity=70, tags=frozenset({tag_id})
+        ),
+        age=35,
+    )
+    too_young = replace(accepted, id=UUID(int=2), age=24)
+    too_popular = replace(accepted, id=UUID(int=3), popularity=95)
+    monkeypatch.setattr("app.discovery.service.load_viewer", lambda *_args: viewer)
+    monkeypatch.setattr(
+        "app.discovery.service.load_eligible_candidates",
+        lambda *_args: [too_young, too_popular, accepted],
+    )
+    query = DiscoveryQuery(age_min=30, popularity_max=80, tag_ids=frozenset({tag_id}))
+    result = suggestions("database", "viewer", query)
+    assert [item["id"] for item in result["data"]] == [str(accepted.id)]
+
+
+def test_explicit_sort_overrides_recommended_same_zone_priority(monkeypatch) -> None:
+    paris_id, lyon_id, tag_id = UUID(int=10), UUID(int=11), UUID(int=12)
+    viewer = ViewerContext(
+        "woman", ("man",), 48.8566, 2.35, paris_id, "Paris", None, frozenset({tag_id})
+    )
+    older_same_zone = replace(
+        candidate(1, location_id=paris_id, latitude=48.85, popularity=10, tags=frozenset({tag_id})),
+        age=45,
+    )
+    younger_other_zone = replace(
+        candidate(2, location_id=lyon_id, latitude=45.75, popularity=80, tags=frozenset({tag_id})),
+        age=25,
+    )
+    monkeypatch.setattr("app.discovery.service.load_viewer", lambda *_args: viewer)
+    monkeypatch.setattr(
+        "app.discovery.service.load_eligible_candidates",
+        lambda *_args: [older_same_zone, younger_other_zone],
+    )
+    result = suggestions("database", "viewer", DiscoveryQuery(sort="age"))
+    assert [item["id"] for item in result["data"]] == [
+        str(younger_other_zone.id),
+        str(older_same_zone.id),
+    ]

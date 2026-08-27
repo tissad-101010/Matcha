@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { SyntheticEvent } from 'react'
 
 import { errorMessage, requestJson } from '../auth/api'
 import { navigate } from '../navigation'
@@ -10,6 +11,14 @@ export function DiscoveryPage() {
   const [nextCursor, setNextCursor] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [filters, setFilters] = useState<DiscoveryFilters>(emptyFilters)
+  const [appliedFilters, setAppliedFilters] =
+    useState<DiscoveryFilters>(emptyFilters)
+  const availableTags = Array.from(
+    new Map(
+      profiles.flatMap((profile) => profile.tags).map((tag) => [tag.id, tag]),
+    ).values(),
+  ).sort((left, right) => left.name.localeCompare(right.name, 'fr'))
 
   useEffect(() => {
     void loadInitial()
@@ -31,9 +40,43 @@ export function DiscoveryPage() {
     setLoading(true)
     try {
       const page = await requestJson<DiscoveryResponse>(
-        `/discovery/suggestions?cursor=${encodeURIComponent(nextCursor)}`,
+        discoveryUrl(appliedFilters, nextCursor),
       )
       setProfiles((current) => [...current, ...page.data])
+      setNextCursor(page.meta.next_cursor)
+    } catch (reason) {
+      setError(errorMessage(reason))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function applyFilters(event: SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setLoading(true)
+    setError('')
+    try {
+      const page = await requestJson<DiscoveryResponse>(discoveryUrl(filters))
+      setAppliedFilters(filters)
+      setProfiles(page.data)
+      setNextCursor(page.meta.next_cursor)
+    } catch (reason) {
+      setError(errorMessage(reason))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function resetFilters() {
+    setFilters(emptyFilters)
+    setLoading(true)
+    setError('')
+    try {
+      const page = await requestJson<DiscoveryResponse>(
+        discoveryUrl(emptyFilters),
+      )
+      setAppliedFilters(emptyFilters)
+      setProfiles(page.data)
       setNextCursor(page.meta.next_cursor)
     } catch (reason) {
       setError(errorMessage(reason))
@@ -92,6 +135,103 @@ export function DiscoveryPage() {
             {profiles.length > 1 ? 's' : ''}
           </p>
         </section>
+        <form
+          className="mt-8 rounded-3xl border border-[#efdeda] bg-white p-5 shadow-sm"
+          onSubmit={(event) => void applyFilters(event)}
+          aria-label="Trier et filtrer les suggestions"
+        >
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <FilterSelect
+              label="Trier par"
+              value={filters.sort}
+              onChange={(sort) => {
+                setFilters({ ...filters, sort })
+              }}
+            />
+            <FilterNumber
+              label="Âge minimum"
+              value={filters.age_min}
+              min="18"
+              max="120"
+              onChange={(age_min) => {
+                setFilters({ ...filters, age_min })
+              }}
+            />
+            <FilterNumber
+              label="Âge maximum"
+              value={filters.age_max}
+              min="18"
+              max="120"
+              onChange={(age_max) => {
+                setFilters({ ...filters, age_max })
+              }}
+            />
+            <FilterNumber
+              label="Distance maximum (km)"
+              value={filters.distance_max_km}
+              min="0"
+              max="20000"
+              onChange={(distance_max_km) => {
+                setFilters({ ...filters, distance_max_km })
+              }}
+            />
+            <FilterNumber
+              label="Popularité minimum"
+              value={filters.popularity_min}
+              min="0"
+              max="100"
+              onChange={(popularity_min) => {
+                setFilters({ ...filters, popularity_min })
+              }}
+            />
+            <FilterNumber
+              label="Popularité maximum"
+              value={filters.popularity_max}
+              min="0"
+              max="100"
+              onChange={(popularity_max) => {
+                setFilters({ ...filters, popularity_max })
+              }}
+            />
+          </div>
+          {availableTags.length > 0 && (
+            <fieldset className="mt-4">
+              <legend className="text-sm font-semibold">Tags en commun</legend>
+              <div className="mt-2 flex flex-wrap gap-3">
+                {availableTags.map((tag) => (
+                  <label
+                    className="flex items-center gap-2 text-sm"
+                    key={tag.id}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={filters.tag_ids.includes(tag.id)}
+                      onChange={() => {
+                        const selected = filters.tag_ids.includes(tag.id)
+                          ? filters.tag_ids.filter((id) => id !== tag.id)
+                          : [...filters.tag_ids, tag.id]
+                        setFilters({ ...filters, tag_ids: selected })
+                      }}
+                    />
+                    {tag.name}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button className="rounded-xl bg-[#d43d37] px-5 py-2.5 font-semibold text-white">
+              Appliquer
+            </button>
+            <button
+              className="rounded-xl border border-[#d8c6cc] px-5 py-2.5 font-semibold"
+              type="button"
+              onClick={() => void resetFilters()}
+            >
+              Réinitialiser
+            </button>
+          </div>
+        </form>
         {error && (
           <div
             className="mt-8 rounded-2xl bg-[#fff0ef] p-4 text-sm text-[#a52e29]"
@@ -151,6 +291,103 @@ async function loadInitial() {
     requestJson<DiscoveryResponse>('/discovery/suggestions'),
   ])
   return { token: session.data.csrf_token, page }
+}
+
+type DiscoveryFilters = {
+  sort: string
+  age_min: string
+  age_max: string
+  distance_max_km: string
+  popularity_min: string
+  popularity_max: string
+  tag_ids: string[]
+}
+
+const emptyFilters: DiscoveryFilters = {
+  sort: 'recommended',
+  age_min: '',
+  age_max: '',
+  distance_max_km: '',
+  popularity_min: '',
+  popularity_max: '',
+  tag_ids: [],
+}
+
+function discoveryUrl(filters: DiscoveryFilters, cursor?: string) {
+  const query = new URLSearchParams()
+  Object.entries(filters).forEach(([name, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        query.append(name, item)
+      })
+      return
+    }
+    if (value && !(name === 'sort' && value === 'recommended')) {
+      query.set(name, value)
+    }
+  })
+  if (cursor) query.set('cursor', cursor)
+  const suffix = query.toString()
+  return `/discovery/suggestions${suffix ? `?${suffix}` : ''}`
+}
+
+function FilterNumber({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  label: string
+  value: string
+  min: string
+  max: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <label className="text-sm font-semibold">
+      {label}
+      <input
+        className="mt-1 w-full rounded-xl border border-[#d8c6cc] px-3 py-2 font-normal"
+        type="number"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(event) => {
+          onChange(event.target.value)
+        }}
+      />
+    </label>
+  )
+}
+
+function FilterSelect({
+  label,
+  value,
+  onChange,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <label className="text-sm font-semibold">
+      {label}
+      <select
+        className="mt-1 w-full rounded-xl border border-[#d8c6cc] px-3 py-2 font-normal"
+        value={value}
+        onChange={(event) => {
+          onChange(event.target.value)
+        }}
+      >
+        <option value="recommended">Recommandé</option>
+        <option value="age">Âge</option>
+        <option value="distance">Distance</option>
+        <option value="popularity">Popularité</option>
+        <option value="tags">Tags communs</option>
+      </select>
+    </label>
+  )
 }
 
 function ProfileCardView({ profile }: { profile: ProfileCard }) {

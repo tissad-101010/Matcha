@@ -764,14 +764,14 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 5.3 Tri et filtrage des suggestions
 
-- [ ] Ajouter le tri par âge.
-- [ ] Ajouter le tri par localisation/distance.
-- [ ] Ajouter le tri par popularité.
-- [ ] Ajouter le tri par nombre de tags communs.
-- [ ] Ajouter les filtres par tranche d'âge.
-- [ ] Ajouter les filtres par localisation/distance.
-- [ ] Ajouter les filtres par plage de popularité.
-- [ ] Ajouter les filtres par tags communs.
+- [x] Ajouter le tri par âge.
+- [x] Ajouter le tri par localisation/distance.
+- [x] Ajouter le tri par popularité.
+- [x] Ajouter le tri par nombre de tags communs.
+- [x] Ajouter les filtres par tranche d'âge.
+- [x] Ajouter les filtres par localisation/distance.
+- [x] Ajouter les filtres par plage de popularité.
+- [x] Ajouter les filtres par tags communs.
 - [ ] Conserver une pagination et des performances acceptables avec 500 profils.
 
 ### 5.4 Recherche avancée

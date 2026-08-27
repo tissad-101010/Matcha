@@ -29,9 +29,11 @@ def suggestions(database_url: str, user_id: str, query: DiscoveryQuery) -> dict[
         )
         common_tags = len(viewer.tag_ids & candidate.tag_ids)
         same_zone = viewer.location_id == candidate.location_id
+        if not _matches_filters(candidate, distance, viewer.tag_ids, query):
+            continue
         score = _score(distance, common_tags, candidate.popularity)
         ranked.append((not same_zone, -score, distance, str(candidate.id), candidate, common_tags))
-    ranked.sort(key=lambda item: item[:4])
+    ranked.sort(key=lambda item: _sort_key(item, query.sort))
     page = ranked[query.offset : query.offset + query.limit]
     next_offset = query.offset + query.limit if query.offset + query.limit < len(ranked) else None
     return {
@@ -41,6 +43,32 @@ def suggestions(database_url: str, user_id: str, query: DiscoveryQuery) -> dict[
             "count": len(page),
         },
     }
+
+
+def _matches_filters(
+    candidate: Candidate, distance: float, viewer_tags: frozenset, query: DiscoveryQuery
+) -> bool:
+    return not (
+        (query.age_min is not None and candidate.age < query.age_min)
+        or (query.age_max is not None and candidate.age > query.age_max)
+        or (query.distance_max_km is not None and distance > query.distance_max_km)
+        or (query.popularity_min is not None and candidate.popularity < query.popularity_min)
+        or (query.popularity_max is not None and candidate.popularity > query.popularity_max)
+        or (query.tag_ids and not query.tag_ids <= candidate.tag_ids & viewer_tags)
+    )
+
+
+def _sort_key(item: tuple, sort: str) -> tuple:
+    same_zone, negative_score, distance, identifier, candidate, common_tags = item
+    if sort == "age":
+        return (candidate.age, distance, identifier)
+    if sort == "distance":
+        return (distance, identifier)
+    if sort == "popularity":
+        return (-candidate.popularity, distance, identifier)
+    if sort == "tags":
+        return (-common_tags, distance, identifier)
+    return (same_zone, negative_score, distance, identifier)
 
 
 def _score(distance_km: float, common_tags: int, popularity: int) -> float:

@@ -14,7 +14,7 @@ discovery_blueprint = Blueprint("discovery", __name__, url_prefix="/api/v1/disco
 @require_auth
 def list_suggestions():  # type: ignore[no-untyped-def]
     try:
-        query = validate_discovery_query(request.args.get("cursor"), request.args.get("limit"))
+        query = validate_discovery_query(request.args, request.args.getlist("tag_ids"))
         result = suggestions(
             str(current_app.config["DATABASE_URL"]), authenticated_user_id() or "", query
         )
