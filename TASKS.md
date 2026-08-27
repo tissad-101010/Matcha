@@ -776,12 +776,12 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 5.4 Recherche avancée
 
-- [ ] Permettre de combiner une tranche d'âge, une localisation, une plage de popularité et plusieurs tags.
-- [ ] Appliquer les mêmes règles de compatibilité et de blocage que les suggestions.
-- [ ] Permettre le tri par âge, distance, popularité et tags.
-- [ ] Permettre d'affiner les résultats sans perdre les critères saisis.
-- [ ] Gérer proprement l'absence de résultat et les critères invalides.
-- [ ] Paramétrer toutes les requêtes de recherche.
+- [x] Permettre de combiner une tranche d'âge, une localisation, une plage de popularité et plusieurs tags.
+- [x] Appliquer les mêmes règles de compatibilité et de blocage que les suggestions.
+- [x] Permettre le tri par âge, distance, popularité et tags.
+- [x] Permettre d'affiner les résultats sans perdre les critères saisis.
+- [x] Gérer proprement l'absence de résultat et les critères invalides.
+- [x] Paramétrer toutes les requêtes de recherche.
 
 ---
 

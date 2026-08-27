@@ -31,5 +31,6 @@ export function App() {
   if (path === '/verify-email') return <VerifyEmailPage />
   if (path === '/onboarding') return <OnboardingPage />
   if (path === '/discover') return <DiscoveryPage />
+  if (path === '/search') return <DiscoveryPage advanced />
   return <LoginPage />
 }

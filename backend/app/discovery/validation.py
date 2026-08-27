@@ -1,7 +1,7 @@
 """Strict, bounded validation for discovery filters and pagination."""
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from math import isfinite
 from uuid import UUID
 
@@ -21,6 +21,7 @@ class DiscoveryQuery:
     popularity_min: int | None = None
     popularity_max: int | None = None
     tag_ids: frozenset[UUID] = frozenset()
+    location_id: UUID | None = None
 
 
 def validate_discovery_query(
@@ -62,6 +63,22 @@ def validate_discovery_query(
         popularity_max,
         frozenset(tags),
     )
+
+
+def validate_search_query(
+    values: Mapping[str, str | None], tag_values: Sequence[str] = ()
+) -> DiscoveryQuery:
+    """Add an optional exact catalogue zone to the shared discovery criteria."""
+    query = validate_discovery_query(values, tag_values)
+    value = values.get("location_id")
+    if not value:
+        return query
+    try:
+        return replace(query, location_id=UUID(value))
+    except ValueError as error:
+        raise InputValidationError(
+            {"location_id": "Sélectionnez une localisation proposée."}
+        ) from error
 
 
 def _integer(value, name, minimum, maximum, default, errors):  # type: ignore[no-untyped-def]

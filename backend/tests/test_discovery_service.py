@@ -133,3 +133,22 @@ def test_explicit_sort_overrides_recommended_same_zone_priority(monkeypatch) -> 
         str(younger_other_zone.id),
         str(older_same_zone.id),
     ]
+
+
+def test_search_location_filter_keeps_only_the_requested_zone(monkeypatch) -> None:
+    paris_id, lyon_id, tag_id = UUID(int=10), UUID(int=11), UUID(int=12)
+    viewer = ViewerContext(
+        "woman", ("man",), 48.8566, 2.35, paris_id, "Paris", None, frozenset({tag_id})
+    )
+    paris = candidate(
+        1, location_id=paris_id, latitude=48.85, popularity=10, tags=frozenset({tag_id})
+    )
+    lyon = candidate(
+        2, location_id=lyon_id, latitude=45.75, popularity=80, tags=frozenset({tag_id})
+    )
+    monkeypatch.setattr("app.discovery.service.load_viewer", lambda *_args: viewer)
+    monkeypatch.setattr(
+        "app.discovery.service.load_eligible_candidates", lambda *_args: [paris, lyon]
+    )
+    result = suggestions("database", "viewer", DiscoveryQuery(location_id=lyon_id))
+    assert [item["id"] for item in result["data"]] == [str(lyon.id)]

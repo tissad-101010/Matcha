@@ -55,6 +55,7 @@ def _matches_filters(
         or (query.popularity_min is not None and candidate.popularity < query.popularity_min)
         or (query.popularity_max is not None and candidate.popularity > query.popularity_max)
         or (query.tag_ids and not query.tag_ids <= candidate.tag_ids & viewer_tags)
+        or (query.location_id is not None and candidate.location_id != query.location_id)
     )
 
 

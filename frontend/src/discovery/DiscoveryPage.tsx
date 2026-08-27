@@ -4,8 +4,9 @@ import type { SyntheticEvent } from 'react'
 import { errorMessage, requestJson } from '../auth/api'
 import { navigate } from '../navigation'
 import type { ProfileCard } from './types'
+import type { LocationSuggestion } from '../onboarding/types'
 
-export function DiscoveryPage() {
+export function DiscoveryPage({ advanced = false }: { advanced?: boolean }) {
   const [profiles, setProfiles] = useState<ProfileCard[]>([])
   const [csrfToken, setCsrfToken] = useState('')
   const [nextCursor, setNextCursor] = useState<string | null>(null)
@@ -14,6 +15,7 @@ export function DiscoveryPage() {
   const [filters, setFilters] = useState<DiscoveryFilters>(emptyFilters)
   const [appliedFilters, setAppliedFilters] =
     useState<DiscoveryFilters>(emptyFilters)
+  const [locations, setLocations] = useState<LocationSuggestion[]>([])
   const availableTags = Array.from(
     new Map(
       profiles.flatMap((profile) => profile.tags).map((tag) => [tag.id, tag]),
@@ -21,11 +23,12 @@ export function DiscoveryPage() {
   ).sort((left, right) => left.name.localeCompare(right.name, 'fr'))
 
   useEffect(() => {
-    void loadInitial()
-      .then(({ token, page }) => {
+    void loadInitial(advanced)
+      .then(({ token, page, locationOptions }) => {
         setCsrfToken(token)
         setProfiles(page.data)
         setNextCursor(page.meta.next_cursor)
+        setLocations(locationOptions)
       })
       .catch((reason: unknown) => {
         setError(errorMessage(reason))
@@ -33,14 +36,14 @@ export function DiscoveryPage() {
       .finally(() => {
         setLoading(false)
       })
-  }, [])
+  }, [advanced])
 
   async function loadMore() {
     if (!nextCursor) return
     setLoading(true)
     try {
       const page = await requestJson<DiscoveryResponse>(
-        discoveryUrl(appliedFilters, nextCursor),
+        discoveryUrl(appliedFilters, nextCursor, advanced),
       )
       setProfiles((current) => [...current, ...page.data])
       setNextCursor(page.meta.next_cursor)
@@ -56,7 +59,9 @@ export function DiscoveryPage() {
     setLoading(true)
     setError('')
     try {
-      const page = await requestJson<DiscoveryResponse>(discoveryUrl(filters))
+      const page = await requestJson<DiscoveryResponse>(
+        discoveryUrl(filters, undefined, advanced),
+      )
       setAppliedFilters(filters)
       setProfiles(page.data)
       setNextCursor(page.meta.next_cursor)
@@ -73,7 +78,7 @@ export function DiscoveryPage() {
     setError('')
     try {
       const page = await requestJson<DiscoveryResponse>(
-        discoveryUrl(emptyFilters),
+        discoveryUrl(emptyFilters, undefined, advanced),
       )
       setAppliedFilters(emptyFilters)
       setProfiles(page.data)
@@ -104,7 +109,22 @@ export function DiscoveryPage() {
             className="flex items-center gap-5 text-sm font-semibold"
             aria-label="Navigation principale"
           >
-            <span className="text-[#d43d37]">Découvrir</span>
+            <button
+              className={advanced ? '' : 'text-[#d43d37]'}
+              onClick={() => {
+                navigate('/discover')
+              }}
+            >
+              Découvrir
+            </button>
+            <button
+              className={advanced ? 'text-[#d43d37]' : ''}
+              onClick={() => {
+                navigate('/search')
+              }}
+            >
+              Rechercher
+            </button>
             <button
               onClick={() => {
                 navigate('/onboarding')
@@ -120,10 +140,12 @@ export function DiscoveryPage() {
         <section className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-sm font-semibold tracking-[0.18em] text-[#d43d37] uppercase">
-              Suggestions compatibles
+              {advanced ? 'Recherche avancée' : 'Suggestions compatibles'}
             </p>
             <h1 className="mt-2 text-4xl font-bold text-[#35102d]">
-              Des profils faits pour se rencontrer
+              {advanced
+                ? 'Trouvez des profils selon vos critères'
+                : 'Des profils faits pour se rencontrer'}
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-[#755f6d]">
               Priorité à votre zone, puis classement transparent selon la
@@ -157,6 +179,25 @@ export function DiscoveryPage() {
                 setFilters({ ...filters, age_min })
               }}
             />
+            {advanced && (
+              <label className="text-sm font-semibold">
+                Localisation
+                <select
+                  className="mt-1 w-full rounded-xl border border-[#d8c6cc] px-3 py-2 font-normal"
+                  value={filters.location_id}
+                  onChange={(event) => {
+                    setFilters({ ...filters, location_id: event.target.value })
+                  }}
+                >
+                  <option value="">Toutes les zones</option>
+                  {locations.map((location) => (
+                    <option value={location.id} key={location.id}>
+                      {location.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <FilterNumber
               label="Âge maximum"
               value={filters.age_max}
@@ -247,11 +288,14 @@ export function DiscoveryPage() {
         ) : profiles.length === 0 ? (
           <section className="mt-12 rounded-3xl border border-[#efdeda] bg-white p-10 text-center">
             <h2 className="text-xl font-bold">
-              Aucune suggestion pour le moment
+              {advanced
+                ? 'Aucun profil ne correspond'
+                : 'Aucune suggestion pour le moment'}
             </h2>
             <p className="mt-2 text-sm text-[#755f6d]">
-              Revenez plus tard : les règles de compatibilité et de blocage
-              restent toujours appliquées.
+              {advanced
+                ? 'Élargissez ou réinitialisez vos critères pour obtenir davantage de résultats.'
+                : 'Revenez plus tard : les règles de compatibilité et de blocage restent toujours appliquées.'}
             </p>
           </section>
         ) : (
@@ -285,12 +329,21 @@ type DiscoveryResponse = {
   meta: { next_cursor: string | null; count: number }
 }
 
-async function loadInitial() {
-  const [session, page] = await Promise.all([
+async function loadInitial(advanced: boolean) {
+  const [session, page, locations] = await Promise.all([
     requestJson<{ data: { csrf_token: string } }>('/auth/session'),
-    requestJson<DiscoveryResponse>('/discovery/suggestions'),
+    requestJson<DiscoveryResponse>(
+      advanced ? '/search/profiles' : '/discovery/suggestions',
+    ),
+    advanced
+      ? requestJson<{ data: LocationSuggestion[] }>('/locations?limit=20')
+      : Promise.resolve({ data: [] }),
   ])
-  return { token: session.data.csrf_token, page }
+  return {
+    token: session.data.csrf_token,
+    page,
+    locationOptions: locations.data,
+  }
 }
 
 type DiscoveryFilters = {
@@ -301,6 +354,7 @@ type DiscoveryFilters = {
   popularity_min: string
   popularity_max: string
   tag_ids: string[]
+  location_id: string
 }
 
 const emptyFilters: DiscoveryFilters = {
@@ -311,9 +365,14 @@ const emptyFilters: DiscoveryFilters = {
   popularity_min: '',
   popularity_max: '',
   tag_ids: [],
+  location_id: '',
 }
 
-function discoveryUrl(filters: DiscoveryFilters, cursor?: string) {
+function discoveryUrl(
+  filters: DiscoveryFilters,
+  cursor?: string,
+  advanced = false,
+) {
   const query = new URLSearchParams()
   Object.entries(filters).forEach(([name, value]) => {
     if (Array.isArray(value)) {
@@ -328,7 +387,8 @@ function discoveryUrl(filters: DiscoveryFilters, cursor?: string) {
   })
   if (cursor) query.set('cursor', cursor)
   const suffix = query.toString()
-  return `/discovery/suggestions${suffix ? `?${suffix}` : ''}`
+  const endpoint = advanced ? '/search/profiles' : '/discovery/suggestions'
+  return `${endpoint}${suffix ? `?${suffix}` : ''}`
 }
 
 function FilterNumber({

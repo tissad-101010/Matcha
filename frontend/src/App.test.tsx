@@ -1,4 +1,10 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { App } from './App'
@@ -136,5 +142,60 @@ describe('authentication experience', () => {
     ).toBeVisible()
     expect(screen.getByText(/même zone/i)).toBeVisible()
     expect(screen.getByText('42/100')).toBeVisible()
+  })
+
+  it('combines and preserves advanced search criteria', async () => {
+    window.history.replaceState({}, '', '/search')
+    const emptyPage = { data: [], meta: { next_cursor: null, count: 0 } }
+    const responses = [
+      { data: { csrf_token: 'csrf' } },
+      emptyPage,
+      {
+        data: [
+          {
+            id: '00000000-0000-4000-8000-000000000010',
+            city: 'Paris',
+            district: null,
+            label: 'Paris',
+          },
+        ],
+      },
+      emptyPage,
+    ]
+    const fetchMock = vi.fn().mockImplementation(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(responses.shift()),
+      }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    render(<App />)
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Trouvez des profils selon vos critères',
+      }),
+    ).toBeVisible()
+    fireEvent.change(screen.getByLabelText('Âge minimum'), {
+      target: { value: '25' },
+    })
+    fireEvent.change(screen.getByLabelText('Localisation'), {
+      target: { value: '00000000-0000-4000-8000-000000000010' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Appliquer' }))
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('/search/profiles?'),
+        expect.anything(),
+      )
+    })
+    const requestedUrl = String(fetchMock.mock.calls.at(-1)?.[0])
+    expect(requestedUrl).toContain('age_min=25')
+    expect(requestedUrl).toContain(
+      'location_id=00000000-0000-4000-8000-000000000010',
+    )
+    expect(screen.getByLabelText('Âge minimum')).toHaveValue(25)
   })
 })
