@@ -198,4 +198,59 @@ describe('authentication experience', () => {
     )
     expect(screen.getByLabelText('Âge minimum')).toHaveValue(25)
   })
+
+  it('renders an allowlisted detailed public profile', async () => {
+    window.history.replaceState(
+      {},
+      '',
+      '/profiles/00000000-0000-4000-8000-000000000010',
+    )
+    const responses = [
+      {
+        data: {
+          id: '00000000-0000-4000-8000-000000000010',
+          username: 'ada42',
+          first_name: 'Ada',
+          last_name: 'Lovelace',
+          age: 30,
+          gender: 'woman',
+          desired_genders: ['man', 'non_binary'],
+          bio: 'Mathématiques et poésie.',
+          photos: [],
+          tags: [{ id: 'tag-1', name: 'Sciences' }],
+          location: { city: 'Paris', district: null },
+          popularity: 73,
+          presence: { online: true, last_seen_at: null },
+          viewer_state: {
+            liked_by_me: false,
+            likes_me: true,
+            matched: false,
+            match_id: null,
+            can_like: true,
+            can_message: false,
+          },
+        },
+      },
+      { data: { csrf_token: 'csrf' } },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(responses.shift()),
+        }),
+      ),
+    )
+    render(<App />)
+
+    expect(
+      await screen.findByRole('heading', { name: 'Ada Lovelace, 30' }),
+    ).toBeVisible()
+    expect(screen.getByText('@ada42')).toBeVisible()
+    expect(screen.getByText('73/100')).toBeVisible()
+    expect(screen.getByText(/vous a déjà liké/i)).toBeVisible()
+    expect(screen.queryByText(/e-mail/i)).not.toBeInTheDocument()
+  })
 })

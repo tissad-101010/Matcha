@@ -501,6 +501,14 @@ function ProfileCardView({ profile }: { profile: ProfileCard }) {
           {profile.common_tags} centre{profile.common_tags > 1 ? 's' : ''}{' '}
           d’intérêt commun{profile.common_tags > 1 ? 's' : ''}
         </p>
+        <button
+          className="w-full rounded-xl bg-[#d43d37] px-4 py-2.5 font-semibold text-white"
+          onClick={() => {
+            navigate(`/profiles/${profile.id}`)
+          }}
+        >
+          Voir le profil
+        </button>
       </div>
     </article>
   )

@@ -11,6 +11,7 @@ from app.routes.health import health_blueprint
 from app.routes.location import location_blueprint
 from app.routes.photos import photos_blueprint
 from app.routes.profile import profile_blueprint
+from app.routes.public_profiles import public_profiles_blueprint
 from app.routes.search import search_blueprint
 from app.routes.tags import tags_blueprint
 
@@ -32,6 +33,7 @@ def create_app(test_config: dict[str, object] | None = None) -> Flask:
     app.register_blueprint(location_blueprint)
     app.register_blueprint(photos_blueprint)
     app.register_blueprint(profile_blueprint)
+    app.register_blueprint(public_profiles_blueprint)
     app.register_blueprint(search_blueprint)
     app.register_blueprint(tags_blueprint)
 

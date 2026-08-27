@@ -1,9 +1,85 @@
 """Small SQL repository for the private profile aggregate."""
 
+from datetime import UTC, datetime, timedelta
 from typing import Any
+from uuid import UUID
 
 import psycopg
 from psycopg import sql
+
+
+def get_public_profile(database_url: str, viewer_id: str, target_id: UUID) -> dict[str, Any] | None:
+    """Load an allowlisted compatible profile and current relationship state."""
+    with psycopg.connect(database_url) as connection:
+        row = connection.execute(
+            """
+            SELECT public.user_id, public.username, profile.first_name, profile.last_name,
+                   public.age, public.gender, profile.bio, public.city_name,
+                   public.district_name, public.popularity_score, public.last_seen_at,
+                   ARRAY(SELECT desired_gender FROM user_preferences
+                         WHERE user_id = public.user_id ORDER BY desired_gender),
+                   EXISTS(SELECT 1 FROM likes WHERE source_user_id = %s
+                          AND target_user_id = public.user_id AND is_active),
+                   EXISTS(SELECT 1 FROM likes WHERE source_user_id = public.user_id
+                          AND target_user_id = %s AND is_active),
+                   (SELECT id FROM active_matches WHERE
+                          (user_low_id = %s AND user_high_id = public.user_id)
+                          OR (user_low_id = public.user_id AND user_high_id = %s)
+                    LIMIT 1),
+                   EXISTS(SELECT 1 FROM photos WHERE user_id = %s AND is_main)
+            FROM public_profiles AS public
+            JOIN profiles AS profile ON profile.user_id = public.user_id
+            JOIN profiles AS viewer ON viewer.user_id = %s
+            WHERE public.user_id = %s AND public.user_id <> %s
+              AND EXISTS (SELECT 1 FROM profile_completeness
+                          WHERE user_id = %s AND is_complete)
+              AND EXISTS (SELECT 1 FROM current_consents WHERE user_id = %s
+                          AND purpose = 'matching_preferences' AND granted)
+              AND NOT EXISTS (SELECT 1 FROM blocks WHERE
+                  (blocker_user_id = %s AND blocked_user_id = public.user_id)
+                  OR (blocker_user_id = public.user_id AND blocked_user_id = %s))
+              AND (NOT EXISTS (SELECT 1 FROM user_preferences WHERE user_id = %s)
+                   OR public.gender IN (SELECT desired_gender FROM user_preferences
+                                        WHERE user_id = %s))
+              AND (NOT EXISTS (SELECT 1 FROM user_preferences WHERE user_id = public.user_id)
+                   OR viewer.gender IN (SELECT desired_gender FROM user_preferences
+                                        WHERE user_id = public.user_id))
+            """,
+            (
+                viewer_id,
+                viewer_id,
+                viewer_id,
+                viewer_id,
+                viewer_id,
+                viewer_id,
+                target_id,
+                viewer_id,
+                viewer_id,
+                viewer_id,
+                viewer_id,
+                viewer_id,
+                viewer_id,
+                viewer_id,
+            ),
+        ).fetchone()
+        if row is None:
+            return None
+        tags = connection.execute(
+            """
+            SELECT tag.id, tag.name FROM profile_tags
+            JOIN tags AS tag ON tag.id = profile_tags.tag_id
+            WHERE profile_tags.user_id = %s ORDER BY tag.name
+            """,
+            (target_id,),
+        ).fetchall()
+        photos = connection.execute(
+            """
+            SELECT id, position, is_main, width, height FROM photos
+            WHERE user_id = %s ORDER BY position
+            """,
+            (target_id,),
+        ).fetchall()
+    return _serialize_public(row, tags, photos)
 
 
 def get_private_profile(database_url: str, user_id: str) -> dict[str, Any] | None:
@@ -203,3 +279,43 @@ def _serialize(row, preferences, tags, photos, location, consents):  # type: ign
         for item in consents
     ]
     return result
+
+
+def _serialize_public(row, tags, photos):  # type: ignore[no-untyped-def]
+    last_seen = row[10]
+    return {
+        "id": str(row[0]),
+        "username": row[1],
+        "first_name": row[2],
+        "last_name": row[3],
+        "age": row[4],
+        "gender": row[5],
+        "bio": row[6],
+        "location": {"city": row[7], "district": row[8]},
+        "popularity": row[9],
+        "presence": {
+            "online": bool(last_seen and last_seen >= datetime.now(UTC) - timedelta(minutes=2)),
+            "last_seen_at": last_seen.isoformat() if last_seen else None,
+        },
+        "desired_genders": list(row[11]),
+        "viewer_state": {
+            "liked_by_me": row[12],
+            "likes_me": row[13],
+            "matched": row[14] is not None,
+            "match_id": str(row[14]) if row[14] else None,
+            "can_like": row[15],
+            "can_message": row[14] is not None,
+        },
+        "tags": [{"id": str(item[0]), "name": item[1]} for item in tags],
+        "photos": [
+            {
+                "id": str(item[0]),
+                "url": f"/api/v1/photos/{item[0]}",
+                "position": item[1],
+                "is_main": item[2],
+                "width": item[3],
+                "height": item[4],
+            }
+            for item in photos
+        ],
+    }

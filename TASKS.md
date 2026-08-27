@@ -789,12 +789,12 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 6.1 Page publique d'un profil
 
-- [ ] Afficher toutes les informations disponibles autorisées par le sujet : username, prénom, nom, âge, genre, préférences sexuelles, biographie, tags, localisation approximative et photos.
-- [ ] Afficher la note de popularité.
-- [ ] Ne jamais afficher l'e-mail, le mot de passe/hash, les jetons, les secrets, les coordonnées GPS précises ou une donnée privée de sécurité.
-- [ ] Afficher le statut en ligne ou la date et l'heure de dernière connexion.
-- [ ] Afficher si ce profil a déjà liké l'utilisateur courant.
-- [ ] Afficher si les deux utilisateurs sont connectés.
+- [x] Afficher toutes les informations disponibles autorisées par le sujet : username, prénom, nom, âge, genre, préférences sexuelles, biographie, tags, localisation approximative et photos.
+- [x] Afficher la note de popularité.
+- [x] Ne jamais afficher l'e-mail, le mot de passe/hash, les jetons, les secrets, les coordonnées GPS précises ou une donnée privée de sécurité.
+- [x] Afficher le statut en ligne ou la date et l'heure de dernière connexion.
+- [x] Afficher si ce profil a déjà liké l'utilisateur courant.
+- [x] Afficher si les deux utilisateurs sont connectés.
 - [ ] Proposer les actions adaptées à l'état : liker la photo de profil, unliker/se déconnecter, bloquer et signaler.
 
 ### 6.2 Visites
