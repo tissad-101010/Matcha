@@ -772,7 +772,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [x] Ajouter les filtres par localisation/distance.
 - [x] Ajouter les filtres par plage de popularité.
 - [x] Ajouter les filtres par tags communs.
-- [ ] Conserver une pagination et des performances acceptables avec 500 profils.
+- [x] Conserver une pagination et des performances acceptables avec 500 profils.
 
 ### 5.4 Recherche avancée
 

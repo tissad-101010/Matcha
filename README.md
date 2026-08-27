@@ -169,6 +169,7 @@ make migrate
 make schema-check
 make seed
 make seed-check
+make discovery-check
 make test
 make lint
 make check
@@ -184,7 +185,8 @@ d'un fichier déjà appliqué. `make schema-check` teste les invariants obligato
 transaction annulée. `make seed` crée de façon reproductible 600 profils fictifs complets et
 600 avatars WebP synthétiques dans le bucket privé `profile-photos`. `make seed-check` vérifie
 les comptes, profils publics, consentements minimisés, photos et objets MinIO. Une seconde
-exécution de `make seed` ne duplique aucune donnée.
+exécution de `make seed` ne duplique aucune donnée. `make discovery-check` parcourt les
+suggestions sans doublon sur ces 600 profils et refuse une latence p95 supérieure à 500 ms.
 
 ## Documentation du projet
 

@@ -7,7 +7,7 @@ PODMAN_ENV := $(if $(XDG_DATA_HOME_VSCODE_SNAP_ORIG),env XDG_DATA_HOME=$(XDG_DAT
 COMPOSE := $(PODMAN_ENV) podman compose --env-file .env -f compose.yml
 PYTHON := .venv/bin/python
 
-.PHONY: help setup config build start migrate schema-check seed seed-check health ps logs test lint check stop down db-shell
+.PHONY: help setup config build start migrate schema-check seed seed-check discovery-check health ps logs test lint check stop down db-shell
 
 help: ## Afficher les commandes disponibles
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  %-12s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -40,6 +40,9 @@ seed: .env ## Créer 600 profils fictifs et leurs avatars privés
 
 seed-check: .env ## Vérifier les profils complets et les objets MinIO du seed
 	$(COMPOSE) exec -T backend python -m scripts.check_seed
+
+discovery-check: .env ## Vérifier pagination et performance sur au moins 500 profils
+	$(COMPOSE) exec -T backend python -m scripts.check_discovery
 
 health: ## Vérifier la disponibilité complète via Nginx
 	python3 scripts/check_health.py
