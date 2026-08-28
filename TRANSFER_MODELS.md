@@ -444,11 +444,12 @@ La distance est arrondie ; aucune latitude ou longitude n'est incluse.
 ```text
 cursor?: Cursor
 limit?: integer 1..50
-sort?: "recommended" | "distance" | "tags" | "popularity"
+sort?: "recommended" | "age" | "distance" | "tags" | "popularity"
 age_min?: integer, minimum 18
 age_max?: integer
 distance_max_km?: number
 popularity_min?: integer 0..100
+popularity_max?: integer 0..100
 tag_ids?: Uuid[]
 ```
 

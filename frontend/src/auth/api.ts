@@ -9,14 +9,53 @@ export class ApiRequestError extends Error {
 }
 
 export async function postJson<T>(path: string, body: unknown): Promise<T> {
+  return requestJson<T>(path, 'POST', body)
+}
+
+export async function requestJson<T>(
+  path: string,
+  method = 'GET',
+  body?: unknown,
+  csrfToken?: string,
+): Promise<T> {
   const response = await fetch(`/api/v1${path}`, {
-    method: 'POST',
+    method,
     credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    headers: {
+      ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+      ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+    },
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   })
   const payload: unknown =
     response.status === 204 ? null : await response.json()
+  if (!response.ok) {
+    if (hasApiError(payload)) {
+      throw new ApiRequestError(
+        payload.error.message,
+        payload.error.code,
+        payload.error.fields,
+      )
+    }
+    throw new ApiRequestError('Une erreur est survenue. Réessayez.')
+  }
+  return payload as T
+}
+
+export async function uploadFile<T>(
+  path: string,
+  file: File,
+  csrfToken: string,
+): Promise<T> {
+  const body = new FormData()
+  body.set('file', file)
+  const response = await fetch(`/api/v1${path}`, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'X-CSRF-Token': csrfToken },
+    body,
+  })
+  const payload: unknown = await response.json()
   if (!response.ok) {
     if (hasApiError(payload)) {
       throw new ApiRequestError(

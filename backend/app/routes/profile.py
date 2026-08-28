@@ -6,6 +6,7 @@ from app.auth.session_access import authenticated_user_id, require_auth, require
 from app.auth.validation import InputValidationError
 from app.profile.repository import (
     matching_consent_active,
+    record_location_consent,
     record_matching_consent,
     replace_preferences,
     update_profile,
@@ -88,7 +89,12 @@ def read_consents():  # type: ignore[no-untyped-def]
     profile = private_profile(
         str(current_app.config["DATABASE_URL"]), authenticated_user_id() or ""
     )
-    return jsonify({"data": profile["consents"] if profile else []})
+    return jsonify(
+        {
+            "data": profile["consents"] if profile else [],
+            "meta": {"current_policy_version": current_app.config["CONSENT_POLICY_VERSION"]},
+        }
+    )
 
 
 @profile_blueprint.put("/consents/preferences")
@@ -111,6 +117,34 @@ def grant_preferences_consent():  # type: ignore[no-untyped-def]
 def withdraw_preferences_consent():  # type: ignore[no-untyped-def]
     """Withdraw consent and erase stored preferences in the same transaction."""
     record_matching_consent(
+        str(current_app.config["DATABASE_URL"]),
+        authenticated_user_id() or "",
+        str(current_app.config["CONSENT_POLICY_VERSION"]),
+        False,
+    )
+    return "", 204
+
+
+@profile_blueprint.put("/consents/location")
+@require_csrf
+def grant_location_consent():  # type: ignore[no-untyped-def]
+    """Record GPS consent separately without invoking browser geolocation."""
+    version = str(current_app.config["CONSENT_POLICY_VERSION"])
+    try:
+        validate_consent(request.get_json(silent=True), version)
+    except InputValidationError as error:
+        return _validation_error(error)
+    record_location_consent(
+        str(current_app.config["DATABASE_URL"]), authenticated_user_id() or "", version, True
+    )
+    return "", 204
+
+
+@profile_blueprint.delete("/consents/location")
+@require_csrf
+def withdraw_location_consent():  # type: ignore[no-untyped-def]
+    """Withdraw GPS consent and atomically erase GPS-derived location data."""
+    record_location_consent(
         str(current_app.config["DATABASE_URL"]),
         authenticated_user_id() or "",
         str(current_app.config["CONSENT_POLICY_VERSION"]),

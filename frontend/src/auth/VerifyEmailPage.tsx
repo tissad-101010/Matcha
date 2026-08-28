@@ -46,10 +46,10 @@ export function VerifyEmailPage() {
           <button
             className={buttonClass}
             onClick={() => {
-              navigate('/onboarding')
+              navigate('/')
             }}
           >
-            Compléter mon profil
+            Se connecter pour compléter mon profil
           </button>
         ) : (
           <>

@@ -491,7 +491,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [ ] Utiliser `CASCADE` seulement pour les données exclusivement possédées : profil, associations de tags, photos et jetons.
 - [ ] Utiliser `RESTRICT` pour les données de référence partagées telles que les tags globaux.
 - [ ] Traiter explicitement dans une transaction métier likes, matchs, messages, visites, notifications, blocages et suppression de compte.
-- [ ] Créer une table outbox pour synchroniser après commit les suppressions d'objets MinIO et autres effets externes.
+- [x] Créer une table outbox pour synchroniser après commit les suppressions d'objets MinIO et autres effets externes.
 - [x] Ajouter les contraintes d'unicité sur username et e-mail normalisés.
 - [x] Ajouter les contraintes empêchant de se liker, se visiter ou se bloquer soi-même lorsque pertinent.
 - [x] Ajouter des index pour recherche, tags, localisation, likes, messages et notifications.
@@ -598,26 +598,26 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 2.4 Stockage d'objets S3 compatible
 
-- [ ] Créer une interface de stockage indépendante du fournisseur : déposer, lire, vérifier et supprimer un objet.
-- [ ] Implémenter MinIO comme backend par défaut via une bibliothèque cliente S3 compatible.
+- [x] Créer une interface de stockage S3 compatible pour déposer, lire et supprimer un objet privé ; ajouter la vérification métier avec les profils publics.
+- [x] Implémenter MinIO comme backend par défaut via boto3 et son API S3 compatible.
 - [ ] Prévoir Cloudflare R2 comme backend optionnel sans dépendance obligatoire au cloud.
 - [ ] Configurer endpoint, région, bucket, access key et secret key uniquement avec `.env`.
 - [ ] Ajouter toutes les variables attendues dans `.env.example` sans secret réel.
 - [ ] Utiliser des identifiants MinIO de développement non triviaux et refuser les valeurs par défaut non sûres en production.
 - [ ] Créer exactement trois buckets privés : `profile-photos`, `gallery` et `temporary`.
 - [ ] Ne jamais exposer les clés MinIO ou R2 au frontend, aux URLs, aux logs ou à Git.
-- [ ] Faire transiter chaque téléversement par Flask pour appliquer authentification, quotas et validation Pillow.
-- [ ] Générer des clés d'objet aléatoires non prédictibles, sans reprendre le nom fourni par l'utilisateur.
-- [ ] Stocker dans PostgreSQL la clé, le bucket, le propriétaire, le type, le format, les dimensions, la taille et les dates.
-- [ ] Ne jamais stocker directement les binaires des images dans PostgreSQL.
+- [x] Faire transiter chaque téléversement par Flask pour appliquer authentification, quotas et validation Pillow.
+- [x] Générer des clés d'objet aléatoires non prédictibles, sans reprendre le nom fourni par l'utilisateur.
+- [x] Stocker dans PostgreSQL la clé, le propriétaire, le type, les dimensions, la taille et les dates ; le bucket obligatoire est fixé par le domaine `profile-photos`.
+- [x] Ne jamais stocker directement les binaires des images dans PostgreSQL.
 - [ ] Faire vérifier par Flask l'authentification, le blocage, la visibilité et la propriété avant tout accès à un objet.
 - [ ] Après autorisation, retourner une URL MinIO/R2 signée valable cinq minutes.
 - [ ] Ne jamais créer d'URL signée avant d'avoir vérifié blocage, visibilité et droit d'accès.
 - [ ] Fixer les URLs signées à cinq minutes et empêcher leur mise en cache publique lorsque nécessaire.
 - [ ] Utiliser des règles CORS minimales si un accès direct signé est retenu.
-- [ ] Garantir la cohérence entre PostgreSQL et le bucket lors d'un ajout, remplacement ou échec de téléversement.
+- [x] Compenser la création MinIO si l'insertion PostgreSQL d'une photo échoue et utiliser une outbox durable pour la suppression.
 - [ ] Supprimer l'ancien objet après remplacement réussi d'une photo.
-- [ ] Supprimer les objets lors de la suppression d'une photo, galerie ou compte.
+- [x] Supprimer les objets lors de la suppression d'une photo ; étendre le même mécanisme à la galerie bonus et à la suppression de compte.
 - [ ] Ajouter un processus contrôlé de nettoyage des objets temporaires et orphelins.
 - [ ] Supprimer automatiquement les objets du bucket `temporary` après une heure.
 - [ ] Consommer l'outbox PostgreSQL pour rendre les suppressions MinIO réessayables et idempotentes.
@@ -679,21 +679,21 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 4.1 Compléter et modifier le profil
 
-- [ ] Créer le parcours de complétion après la première connexion.
-- [ ] Refuser l'inscription avant création du compte lorsque la date de naissance indique moins de 18 ans.
+- [x] Créer le parcours frontend de complétion après la première connexion avec profil, préférences consenties, tags et localisation manuelle.
+- [x] Refuser l'inscription avant création du compte lorsque la date de naissance indique moins de 18 ans.
 - [ ] Calculer l'âge côté serveur et ne jamais accepter un âge fourni comme valeur faisant autorité.
-- [ ] Permettre de définir genre, préférences sexuelles, date de naissance et biographie.
-- [ ] Recueillir avant les préférences sexuelles un consentement explicite distinct, non précoché, informé, horodaté et versionné.
+- [x] Permettre de définir genre, préférences sexuelles, date de naissance et biographie via l'API et l'onboarding.
+- [x] Recueillir avant les préférences sexuelles un consentement explicite distinct, non précoché, informé, horodaté et versionné.
 - [ ] Recueillir séparément le consentement GPS ; ne jamais fusionner les deux consentements.
 - [ ] Permettre de consulter et retirer chaque consentement aussi facilement qu'il a été donné.
-- [ ] Après retrait du consentement aux préférences, effacer la valeur et suspendre suggestions, recherche et matching jusqu'à nouveau consentement.
+- [x] Après retrait du consentement aux préférences, effacer la valeur et suspendre suggestions, recherche et matching jusqu'à nouveau consentement.
 - [x] Permettre via l'API d'ajouter des tags réutilisables et de remplacer la sélection du profil ; l'interface onboarding reste à brancher.
 - [ ] Permettre de modifier prénom, nom et adresse e-mail.
 - [ ] Lors d'une modification d'e-mail, conserver l'ancienne adresse active jusqu'à validation du lien unique envoyé à la nouvelle adresse.
 - [ ] Vérifier à nouveau l'unicité de la nouvelle adresse avant de finaliser la modification.
 - [ ] Permettre toutes ces modifications à tout moment.
 - [ ] Afficher clairement les informations manquantes qui bloquent le matching.
-- [ ] Considérer le profil complet uniquement avec majorité, genre, biographie non vide, au moins un tag et une localisation valide.
+- [x] Considérer le profil complet uniquement avec majorité, genre, biographie non vide, au moins un tag et une localisation valide.
 - [ ] Exclure des découvertes les comptes incomplets, inactifs et non vérifiés et rendre leur profil direct indisponible aux autres membres.
 - [ ] Ajouter une suppression de compte protégée par mot de passe ou réauthentification récente.
 - [ ] À la suppression, révoquer immédiatement sessions et sockets puis lancer la suppression transactionnelle et l'outbox MinIO.
@@ -701,33 +701,33 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 4.2 Photos
 
-- [ ] Permettre l'ajout, l'affichage et la suppression de photos.
-- [ ] Refuser une sixième photo.
-- [ ] Permettre de désigner une photo comme photo de profil.
-- [ ] Gérer la suppression de la photo principale sans état incohérent.
-- [ ] Appliquer toutes les validations de téléversement.
-- [ ] Accepter uniquement JPEG, PNG et WebP après décodage réel par Pillow.
-- [ ] Refuser tout fichier supérieur à 5 Mio ou toute image dépassant 4096 × 4096 pixels.
-- [ ] Refuser SVG, GIF animé et formats non retenus.
-- [ ] Corriger l'orientation, supprimer les métadonnées EXIF et réencoder l'image avant stockage.
+- [x] Permettre via l'API et l'onboarding l'ajout, l'affichage, le choix de la principale et la suppression de photos ; l'ordonnancement fin reste disponible via l'API.
+- [x] Refuser une sixième photo par verrou transactionnel et contrainte SQL.
+- [x] Permettre de désigner une photo comme photo de profil.
+- [x] Gérer la suppression de la photo principale en promouvant atomiquement la première restante.
+- [x] Appliquer toutes les validations de téléversement côté serveur.
+- [x] Accepter uniquement JPEG, PNG et WebP après décodage réel par Pillow.
+- [x] Refuser tout fichier supérieur à 5 Mio ou toute image dépassant 4096 × 4096 pixels.
+- [x] Refuser SVG, GIF animé, bombes de décompression et formats non retenus.
+- [x] Corriger l'orientation, supprimer les métadonnées EXIF et réencoder en WebP avant stockage.
 - [ ] Empêcher un utilisateur sans photo principale de liker un profil.
 
 ### 4.3 Localisation respectueuse du consentement
 
 - [ ] Demander explicitement l'autorisation avant d'appeler la géolocalisation du navigateur.
-- [ ] Enregistrer le choix de consentement.
-- [ ] Convertir les coordonnées en ville/quartier sans exposer inutilement leur précision.
-- [ ] Réduire les coordonnées GPS à la précision de quartier avant leur stockage métier et ne jamais exposer les coordonnées brutes.
-- [ ] Créer un catalogue local de villes/quartiers et coordonnées approximatives pour la saisie manuelle et le seed.
-- [ ] Permettre une recherche locale dans ce catalogue sans appeler un service externe à chaque frappe.
+- [x] Enregistrer via l'API le consentement GPS séparé, versionné et retirable ; le branchement à l'écran reste à faire.
+- [x] Convertir les coordonnées en ville/quartier approximatif via le centroïde local le plus proche sans exposer leur précision.
+- [x] Remplacer immédiatement les coordonnées GPS brutes par le centroïde du catalogue avant le stockage métier et ne jamais les renvoyer.
+- [x] Créer un catalogue local de villes/quartiers et coordonnées approximatives pour la saisie manuelle et le seed.
+- [x] Permettre une recherche API locale dans ce catalogue sans appeler de service externe à chaque frappe.
 - [ ] Intégrer Nominatim uniquement pour une recherche ou un géocodage inverse explicitement déclenché par l'utilisateur.
 - [ ] Respecter pour Nominatim : au maximum une requête par seconde pour toute l'application, User-Agent identifiable, attribution visible et cache des résultats.
 - [ ] Interdire l'autocomplétion directe, le bulk geocoding et l'utilisation de Nominatim par le seed.
 - [ ] Rendre l'endpoint de géocodage configurable afin de pouvoir changer ou désactiver le fournisseur sans mise à jour du frontend.
-- [ ] Basculer proprement sur le catalogue et la saisie manuelle lorsque Nominatim ou Internet est indisponible.
-- [ ] Si le GPS est refusé ou indisponible, demander obligatoirement une ville ou un quartier.
-- [ ] Empêcher le matching tant qu'aucune localisation n'est disponible.
-- [ ] Permettre de modifier ou remplacer la localisation à tout moment.
+- [x] Rendre le catalogue et la saisie manuelle totalement indépendants de Nominatim et d'Internet.
+- [ ] Si le GPS est refusé ou indisponible, demander obligatoirement une ville ou un quartier dans l'interface.
+- [x] Empêcher côté serveur le matching tant qu'aucune localisation n'est disponible via la règle de complétude.
+- [x] Permettre via l'API de modifier, remplacer ou supprimer la localisation à tout moment.
 - [ ] Calculer une distance exploitable pour suggestions, tris et filtres.
 
 ### 4.4 Popularité et historique personnel
@@ -745,43 +745,43 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 5.1 Compatibilité des profils
 
-- [ ] Implémenter les règles de compatibilité dans les deux sens.
-- [ ] Gérer correctement hétérosexualité, homosexualité et bisexualité.
-- [ ] Traiter une préférence non renseignée comme l'ensemble de tous les genres lorsque le consentement sensible est actif.
-- [ ] Exclure l'utilisateur courant.
-- [ ] Exclure les comptes bloqués dans les deux sens.
-- [ ] Exclure systématiquement les profils incomplets, inactifs et non vérifiés des suggestions, recherches et consultations directes.
+- [x] Implémenter les règles de compatibilité dans les deux sens dans le service de suggestions.
+- [x] Gérer dans le domaine backend les compatibilités hétérosexuelles, homosexuelles et préférences portant sur plusieurs genres.
+- [x] Traiter une préférence non renseignée comme l'ensemble de tous les genres lorsque le consentement sensible est actif.
+- [x] Exclure l'utilisateur courant des suggestions.
+- [x] Exclure les comptes bloqués dans les deux sens des suggestions et des photos publiques ; réutiliser la règle pour la recherche.
+- [x] Exclure systématiquement les profils incomplets, inactifs et non vérifiés des suggestions ; réutiliser la règle pour la recherche et les profils directs.
 
 ### 5.2 Suggestions intelligentes
 
-- [ ] Calculer le nombre de tags communs.
-- [ ] Calculer la distance géographique.
-- [ ] Intégrer la note de popularité.
-- [ ] Combiner plusieurs critères dans le classement.
-- [ ] Donner la priorité aux profils de la même zone géographique.
-- [ ] Vérifier avec des tests que le classement respecte réellement ces règles.
-- [ ] Afficher les informations utiles expliquant la suggestion : distance, tags communs et popularité.
+- [x] Calculer le nombre de tags communs.
+- [x] Calculer la distance géographique avec la formule de Haversine.
+- [x] Intégrer la note de popularité stockée et calculée côté serveur.
+- [x] Combiner distance, tags et popularité avec la formule métier validée.
+- [x] Donner une priorité absolue aux profils de la même zone géographique.
+- [x] Vérifier avec des tests que le classement respecte réellement ces règles.
+- [x] Afficher sur chaque carte la distance arrondie, la zone, les tags communs et la popularité expliquant la suggestion.
 
 ### 5.3 Tri et filtrage des suggestions
 
-- [ ] Ajouter le tri par âge.
-- [ ] Ajouter le tri par localisation/distance.
-- [ ] Ajouter le tri par popularité.
-- [ ] Ajouter le tri par nombre de tags communs.
-- [ ] Ajouter les filtres par tranche d'âge.
-- [ ] Ajouter les filtres par localisation/distance.
-- [ ] Ajouter les filtres par plage de popularité.
-- [ ] Ajouter les filtres par tags communs.
-- [ ] Conserver une pagination et des performances acceptables avec 500 profils.
+- [x] Ajouter le tri par âge.
+- [x] Ajouter le tri par localisation/distance.
+- [x] Ajouter le tri par popularité.
+- [x] Ajouter le tri par nombre de tags communs.
+- [x] Ajouter les filtres par tranche d'âge.
+- [x] Ajouter les filtres par localisation/distance.
+- [x] Ajouter les filtres par plage de popularité.
+- [x] Ajouter les filtres par tags communs.
+- [x] Conserver une pagination et des performances acceptables avec 500 profils.
 
 ### 5.4 Recherche avancée
 
-- [ ] Permettre de combiner une tranche d'âge, une localisation, une plage de popularité et plusieurs tags.
-- [ ] Appliquer les mêmes règles de compatibilité et de blocage que les suggestions.
-- [ ] Permettre le tri par âge, distance, popularité et tags.
-- [ ] Permettre d'affiner les résultats sans perdre les critères saisis.
-- [ ] Gérer proprement l'absence de résultat et les critères invalides.
-- [ ] Paramétrer toutes les requêtes de recherche.
+- [x] Permettre de combiner une tranche d'âge, une localisation, une plage de popularité et plusieurs tags.
+- [x] Appliquer les mêmes règles de compatibilité et de blocage que les suggestions.
+- [x] Permettre le tri par âge, distance, popularité et tags.
+- [x] Permettre d'affiner les résultats sans perdre les critères saisis.
+- [x] Gérer proprement l'absence de résultat et les critères invalides.
+- [x] Paramétrer toutes les requêtes de recherche.
 
 ---
 
@@ -789,51 +789,51 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 6.1 Page publique d'un profil
 
-- [ ] Afficher toutes les informations disponibles autorisées par le sujet : username, prénom, nom, âge, genre, préférences sexuelles, biographie, tags, localisation approximative et photos.
-- [ ] Afficher la note de popularité.
-- [ ] Ne jamais afficher l'e-mail, le mot de passe/hash, les jetons, les secrets, les coordonnées GPS précises ou une donnée privée de sécurité.
-- [ ] Afficher le statut en ligne ou la date et l'heure de dernière connexion.
-- [ ] Afficher si ce profil a déjà liké l'utilisateur courant.
-- [ ] Afficher si les deux utilisateurs sont connectés.
-- [ ] Proposer les actions adaptées à l'état : liker la photo de profil, unliker/se déconnecter, bloquer et signaler.
+- [x] Afficher toutes les informations disponibles autorisées par le sujet : username, prénom, nom, âge, genre, préférences sexuelles, biographie, tags, localisation approximative et photos.
+- [x] Afficher la note de popularité.
+- [x] Ne jamais afficher l'e-mail, le mot de passe/hash, les jetons, les secrets, les coordonnées GPS précises ou une donnée privée de sécurité.
+- [x] Afficher le statut en ligne ou la date et l'heure de dernière connexion.
+- [x] Afficher si ce profil a déjà liké l'utilisateur courant.
+- [x] Afficher si les deux utilisateurs sont connectés.
+- [x] Proposer les actions adaptées à l'état : liker la photo de profil, unliker/se déconnecter, bloquer et signaler.
 
 ### 6.2 Visites
 
-- [ ] Enregistrer la consultation d'un autre profil avec sa date.
-- [ ] Enregistrer chaque consultation humaine réelle mais ignorer les rafraîchissements et appels automatiques techniques.
-- [ ] Limiter à une notification de visite par paire visiteur/profil sur 24 heures.
-- [ ] Supprimer automatiquement l'historique détaillé des visites après 90 jours.
+- [x] Enregistrer la consultation d'un autre profil avec sa date.
+- [x] Enregistrer chaque consultation humaine réelle mais ignorer les rafraîchissements et appels automatiques techniques.
+- [x] Limiter à une notification de visite par paire visiteur/profil sur 24 heures.
+- [x] Supprimer automatiquement l'historique détaillé des visites après 90 jours.
 - [ ] Créer la notification de visite en moins de 10 secondes.
-- [ ] Ne pas enregistrer une consultation de son propre profil.
-- [ ] Ne pas laisser les utilisateurs bloqués interagir via ce mécanisme.
+- [x] Ne pas enregistrer une consultation de son propre profil.
+- [x] Ne pas laisser les utilisateurs bloqués interagir via ce mécanisme.
 
 ### 6.3 Likes et matchs
 
-- [ ] Permettre explicitement de liker la photo de profil d'un autre utilisateur, uniquement si l'utilisateur courant possède lui-même une photo de profil.
-- [ ] Empêcher les doublons et le like de soi-même.
+- [x] Permettre explicitement de liker la photo de profil d'un autre utilisateur, uniquement si l'utilisateur courant possède lui-même une photo de profil.
+- [x] Empêcher les doublons et le like de soi-même.
 - [ ] Notifier le destinataire d'un nouveau like en moins de 10 secondes.
-- [ ] Détecter le like réciproque de manière atomique.
-- [ ] Créer ou reconnaître la connexion et notifier le match.
-- [ ] Afficher immédiatement le nouvel état aux deux utilisateurs.
-- [ ] Permettre l'unlike.
-- [ ] Afficher clairement l'action « se déconnecter » lorsqu'un match existe ; cette action effectue l'unlike et applique toutes ses conséquences.
-- [ ] Après unlike, désactiver le chat entre les deux utilisateurs.
-- [ ] Après unlike, notifier l'ancien match.
+- [x] Détecter le like réciproque de manière atomique.
+- [x] Créer ou reconnaître la connexion et notifier le match.
+- [ ] Afficher immédiatement le nouvel état aux deux utilisateurs (interface locale faite ; diffusion temps réel restante).
+- [x] Permettre l'unlike.
+- [x] Afficher clairement l'action « se déconnecter » lorsqu'un match existe ; cette action effectue l'unlike et applique toutes ses conséquences.
+- [x] Après unlike, désactiver le chat entre les deux utilisateurs.
+- [x] Après unlike, notifier l'ancien match.
 - [ ] Après unlike, empêcher les notifications ultérieures provenant de cet utilisateur conformément au sujet.
 - [ ] Conserver la conversation passée en lecture seule après unlike et permettre à chaque utilisateur de la masquer localement.
-- [ ] Exiger deux nouveaux likes actifs pour recréer un match après unlike.
+- [x] Exiger deux nouveaux likes actifs pour recréer un match après unlike.
 - [ ] Tester les actions simultanées et éviter les états dupliqués.
 
 ### 6.4 Blocage et signalement
 
-- [ ] Permettre de signaler un profil comme faux compte.
-- [ ] Stocker auteur, cible, motif éventuel et date sans doublon abusif.
-- [ ] Permettre de bloquer un utilisateur.
-- [ ] Lors du blocage, supprimer les likes actifs, terminer le match et rendre la conversation inaccessible dans les deux sens.
+- [x] Permettre de signaler un profil comme faux compte.
+- [x] Stocker auteur, cible, motif éventuel et date sans doublon abusif.
+- [x] Permettre de bloquer un utilisateur.
+- [x] Lors du blocage, supprimer les likes actifs, terminer le match et rendre la conversation inaccessible dans les deux sens.
 - [ ] Retirer les utilisateurs bloqués des suggestions et recherches.
 - [ ] Empêcher likes, visites notifiantes, messages et notifications entre utilisateurs bloqués.
-- [ ] Désactiver une conversation existante après blocage.
-- [ ] Lors du déblocage, ne restaurer automatiquement ni likes, ni match, ni conversation active.
+- [x] Désactiver une conversation existante après blocage.
+- [x] Lors du déblocage, ne restaurer automatiquement ni likes, ni match, ni conversation active.
 - [ ] Vérifier le blocage côté serveur sur chaque action, pas seulement dans l'interface.
 
 ---

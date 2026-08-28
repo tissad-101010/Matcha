@@ -73,3 +73,19 @@ def test_withdrawing_consent_is_separate_and_atomic(client: FlaskClient, monkeyp
 
     assert grant.status_code == withdraw.status_code == 204
     assert decisions == [("2026-08", True), ("2026-08", False)]
+
+
+def test_consents_expose_the_current_policy_version(client: FlaskClient, monkeypatch) -> None:
+    authenticate(client)
+    monkeypatch.setattr(
+        "app.routes.profile.private_profile",
+        lambda *_args: {"consents": []},
+    )
+
+    response = client.get("/api/v1/me/consents")
+
+    assert response.status_code == 200
+    assert response.get_json() == {
+        "data": [],
+        "meta": {"current_policy_version": "2026-08"},
+    }
