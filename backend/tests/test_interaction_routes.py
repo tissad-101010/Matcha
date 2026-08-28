@@ -108,3 +108,30 @@ def test_explicit_visit_is_recorded_once_by_the_client(client: FlaskClient, monk
     )
     assert response.status_code == 204
     assert len(calls) == 1
+
+
+def test_visit_notification_is_emitted_to_the_recipient_room(
+    client: FlaskClient, monkeypatch
+) -> None:
+    authenticate(client)
+    notification = {
+        "id": "00000000-0000-4000-8000-000000000099",
+        "type": "profile_visited",
+        "actor_user_id": "e8d7a810-4cb8-47ec-b359-70fdc5288a9a",
+        "created_at": "2026-08-28T09:00:00+00:00",
+    }
+    emissions = []
+    monkeypatch.setattr(
+        "app.routes.interactions.record_profile_visit", lambda *_args: notification
+    )
+    monkeypatch.setattr(
+        "app.routes.interactions.socketio.emit",
+        lambda event, payload, **kwargs: emissions.append((event, payload, kwargs)),
+    )
+    response = client.post(
+        f"/api/v1/profiles/{TARGET_ID}/visit", headers={"X-CSRF-Token": "csrf-test"}
+    )
+    assert response.status_code == 204
+    assert emissions == [
+        ("notification.created", notification, {"to": f"user:{TARGET_ID}"})
+    ]

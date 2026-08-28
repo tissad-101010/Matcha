@@ -30,7 +30,7 @@ def test_unlike_requires_an_active_like(monkeypatch) -> None:
 def test_visit_refuses_self_and_inaccessible_profiles(monkeypatch) -> None:
     with pytest.raises(InteractionError) as self_visit:
         record_profile_visit("database", "same", "same")
-    monkeypatch.setattr("app.interactions.service.insert_visit", lambda *_args: False)
+    monkeypatch.setattr("app.interactions.service.insert_visit", lambda *_args: (False, None))
     with pytest.raises(InteractionError) as unavailable:
         record_profile_visit("database", "visitor", "blocked")
     assert self_visit.value.code == "self_interaction"

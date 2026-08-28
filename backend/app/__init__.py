@@ -4,7 +4,8 @@ from flask import Flask
 
 from app.config import build_config
 from app.errors import register_error_handlers
-from app.extensions import init_extensions
+from app.extensions import init_extensions, socketio
+from app.realtime import register_realtime_handlers
 from app.routes.auth import auth_blueprint, csrf_blueprint
 from app.routes.discovery import discovery_blueprint
 from app.routes.health import health_blueprint
@@ -26,6 +27,7 @@ def create_app(test_config: dict[str, object] | None = None) -> Flask:
         app.config.update(test_config)
 
     init_extensions(app)
+    register_realtime_handlers(socketio)
     register_error_handlers(app)
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(csrf_blueprint)

@@ -416,9 +416,9 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [x] Configurer les volumes PostgreSQL persistants avec des droits compatibles avec Podman rootless.
 - [x] Configurer le réseau Compose et utiliser les noms des services pour les communications internes.
 - [x] Exposer uniquement les ports nécessaires à l'hôte.
-- [ ] Vérifier le fonctionnement de Flask-SocketIO et des WebSockets à travers le réseau Podman.
+- [x] Vérifier le fonctionnement de Flask-SocketIO et des WebSockets à travers le réseau Podman.
 - [x] Configurer le choix validé Gunicorn/gevent avec exactement un worker WebSocket pour la première version.
-- [ ] Configurer Flask-SocketIO avec Valkey comme bus Pub/Sub même en mono-worker, puis tester la diffusion.
+- [ ] Configurer Flask-SocketIO avec Valkey comme bus Pub/Sub même en mono-worker, puis tester la diffusion (configuration présente ; test Pub/Sub réel restant).
 - [ ] Documenter que le multi-instance exige plusieurs serveurs mono-worker derrière Nginx avec affinité, jamais `gunicorn -w N`.
 - [ ] Ajouter des healthchecks distincts pour Nginx/HTTP, PostgreSQL, Valkey, MinIO et la disponibilité du canal temps réel.
 - [ ] Tester et documenter `podman compose`, puis vérifier si `podman-compose` doit aussi être supporté.
@@ -803,7 +803,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [x] Enregistrer chaque consultation humaine réelle mais ignorer les rafraîchissements et appels automatiques techniques.
 - [x] Limiter à une notification de visite par paire visiteur/profil sur 24 heures.
 - [x] Supprimer automatiquement l'historique détaillé des visites après 90 jours.
-- [ ] Créer la notification de visite en moins de 10 secondes.
+- [x] Créer la notification de visite en moins de 10 secondes.
 - [x] Ne pas enregistrer une consultation de son propre profil.
 - [x] Ne pas laisser les utilisateurs bloqués interagir via ce mécanisme.
 
@@ -840,12 +840,12 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ## Phase 7 — Chat temps réel (Obligatoire)
 
-- [ ] Authentifier la connexion Socket.IO à partir de la session serveur existante.
-- [ ] Refuser l'ouverture ou les événements Socket.IO d'un utilisateur non authentifié.
+- [x] Authentifier la connexion Socket.IO à partir de la session serveur existante.
+- [x] Refuser l'ouverture ou les événements Socket.IO d'un utilisateur non authentifié.
 - [ ] Revalider côté serveur l'appartenance à la conversation pour chaque message envoyé.
 - [ ] Exiger un UUID v4 généré côté client pour chaque événement Socket.IO d'écriture.
 - [ ] Valider l'UUID côté serveur et conserver sa clé d'idempotence dans Valkey pendant 24 heures.
-- [ ] Persister d'abord le message ou la notification dans PostgreSQL avant acquittement et diffusion.
+- [x] Persister d'abord le message ou la notification dans PostgreSQL avant acquittement et diffusion.
 - [ ] Créer ou retrouver une conversation pour chaque connexion mutuelle.
 - [ ] Autoriser l'accès uniquement aux deux participants encore connectés et non bloqués.
 - [ ] Créer l'interface de liste des conversations.

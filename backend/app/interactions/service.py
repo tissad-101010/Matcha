@@ -40,9 +40,13 @@ def unlike_profile(database_url: str, source_id: str, target_id: str) -> dict[st
     return result
 
 
-def record_profile_visit(database_url: str, visitor_id: str, visited_id: str) -> None:
+def record_profile_visit(
+    database_url: str, visitor_id: str, visited_id: str
+) -> dict[str, str] | None:
     """Record only explicit visits between distinct, authorized users."""
     if visitor_id == visited_id:
         raise InteractionError("self_interaction", "Votre propre profil n'est pas une visite.", 422)
-    if not insert_visit(database_url, visitor_id, visited_id):
+    authorized, notification = insert_visit(database_url, visitor_id, visited_id)
+    if not authorized:
         raise InteractionError("not_found", "Profil introuvable.", 404)
+    return notification

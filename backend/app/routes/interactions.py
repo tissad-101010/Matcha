@@ -6,6 +6,7 @@ from flask import Blueprint, current_app, jsonify, request
 
 from app.auth.session_access import authenticated_user_id, require_csrf
 from app.auth.validation import InputValidationError
+from app.extensions import socketio
 from app.interactions.service import (
     InteractionError,
     like_profile,
@@ -14,6 +15,7 @@ from app.interactions.service import (
 )
 from app.moderation.service import block_profile, report_profile, unblock_profile
 from app.moderation.validation import validate_report
+from app.realtime import user_room
 
 interactions_blueprint = Blueprint("interactions", __name__, url_prefix="/api/v1/profiles")
 
@@ -46,13 +48,15 @@ def delete_like(target_id: UUID):  # type: ignore[no-untyped-def]
 @require_csrf
 def create_profile_visit(target_id: UUID):  # type: ignore[no-untyped-def]
     try:
-        record_profile_visit(
+        notification = record_profile_visit(
             str(current_app.config["DATABASE_URL"]),
             authenticated_user_id() or "",
             str(target_id),
         )
     except InteractionError as error:
         return jsonify({"error": {"code": error.code, "message": error.message}}), error.status
+    if notification is not None:
+        socketio.emit("notification.created", notification, to=user_room(str(target_id)))
     return "", 204
 
 

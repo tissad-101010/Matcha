@@ -149,7 +149,9 @@ def deactivate_pair(database_url: str, source_id: str, target_id: str) -> dict[s
     return {"liked": False, "matched": False, "match_id": None}
 
 
-def insert_visit(database_url: str, visitor_id: str, visited_id: str) -> bool:
+def insert_visit(
+    database_url: str, visitor_id: str, visited_id: str
+) -> tuple[bool, dict[str, str] | None]:
     """Record an authorized human visit and notify at most once per 24 hours."""
     with psycopg.connect(database_url) as connection:
         authorized = connection.execute(
@@ -160,7 +162,7 @@ def insert_visit(database_url: str, visitor_id: str, visited_id: str) -> bool:
             (visited_id, visitor_id, visited_id, visited_id, visitor_id),
         ).fetchone()[0]
         if not authorized:
-            return False
+            return False, None
         connection.execute(
             "DELETE FROM visits WHERE visited_at < CURRENT_TIMESTAMP - INTERVAL '90 days'"
         )
@@ -177,11 +179,20 @@ def insert_visit(database_url: str, visitor_id: str, visited_id: str) -> bool:
             (visitor_id, visited_id, notification_eligible),
         ).fetchone()
         if notification_eligible:
-            connection.execute(
+            notification = connection.execute(
                 """INSERT INTO notifications
                    (recipient_user_id, actor_user_id, type, visit_id)
-                   VALUES (%s, %s, 'profile_visited', %s)""",
+                   VALUES (%s, %s, 'profile_visited', %s)
+                   RETURNING id, created_at""",
                 (visited_id, visitor_id, visit[0]),
-            )
+            ).fetchone()
+            event = {
+                "id": str(notification[0]),
+                "type": "profile_visited",
+                "actor_user_id": visitor_id,
+                "created_at": notification[1].isoformat(),
+            }
+        else:
+            event = None
         connection.execute("SELECT recompute_popularity(%s)", (visited_id,))
-    return True
+    return True, event
