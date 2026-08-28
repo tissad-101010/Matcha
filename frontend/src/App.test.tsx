@@ -446,4 +446,63 @@ describe('authentication experience', () => {
       await screen.findByText(/vient de recevoir un nouveau like/i),
     ).toHaveAttribute('role', 'status')
   })
+
+  it('updates a displayed relationship immediately from Socket.IO', async () => {
+    window.history.replaceState(
+      {},
+      '',
+      '/profiles/00000000-0000-4000-8000-000000000010',
+    )
+    const profile = {
+      id: '00000000-0000-4000-8000-000000000010',
+      username: 'ada42',
+      first_name: 'Ada',
+      last_name: 'Lovelace',
+      age: 30,
+      gender: 'woman',
+      desired_genders: ['man'],
+      bio: 'Bio',
+      photos: [],
+      tags: [],
+      location: { city: 'Paris', district: null },
+      popularity: 50,
+      presence: { online: true, last_seen_at: null },
+      viewer_state: {
+        liked_by_me: true,
+        likes_me: false,
+        matched: false,
+        match_id: null,
+        can_like: true,
+        can_message: false,
+      },
+    }
+    const responses = [
+      { data: profile },
+      { data: { csrf_token: 'csrf' } },
+      null,
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() =>
+        Promise.resolve({
+          ok: true,
+          status: responses.length === 1 ? 204 : 200,
+          json: () => Promise.resolve(responses.shift()),
+        }),
+      ),
+    )
+    render(<App />)
+    await screen.findByText('Vous avez déjà liké ce profil.')
+    act(() => {
+      realtime.handlers.get('relationship.updated')?.({
+        target_user_id: profile.id,
+        liked_by_me: true,
+        likes_me: true,
+        matched: true,
+        match_id: 'match-1',
+      })
+    })
+    expect(await screen.findByText('Vous êtes connectés.')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Se déconnecter' })).toBeVisible()
+  })
 })

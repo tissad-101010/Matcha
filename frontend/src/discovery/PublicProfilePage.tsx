@@ -40,6 +40,38 @@ export function PublicProfilePage({ profileId }: { profileId: string }) {
       })
   }, [profileId])
 
+  useEffect(() => {
+    const updateRelationship = (rawEvent: Event) => {
+      const event = rawEvent as CustomEvent<{
+        target_user_id: string
+        liked_by_me: boolean
+        likes_me: boolean
+        matched: boolean
+        match_id: string | null
+      }>
+      if (event.detail.target_user_id !== profileId) return
+      setProfile((current) =>
+        current
+          ? {
+              ...current,
+              viewer_state: {
+                ...current.viewer_state,
+                ...event.detail,
+                can_message: event.detail.matched,
+              },
+            }
+          : current,
+      )
+    }
+    window.addEventListener('matcha:relationship-updated', updateRelationship)
+    return () => {
+      window.removeEventListener(
+        'matcha:relationship-updated',
+        updateRelationship,
+      )
+    }
+  }, [profileId])
+
   async function logout() {
     await requestJson('/auth/logout', 'POST', undefined, csrfToken)
     navigate('/')

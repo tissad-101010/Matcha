@@ -34,7 +34,8 @@ def _run(action, target_id: UUID):  # type: ignore[no-untyped-def]
         events = result.pop("_events", [])
         for event in events:
             recipient_id = event.pop("recipient_user_id")
-            socketio.emit("notification.created", event, to=user_room(recipient_id))
+            event_name = event.pop("_event_name", "notification.created")
+            socketio.emit(event_name, event, to=user_room(recipient_id))
     return jsonify({"data": result})
 
 

@@ -98,6 +98,43 @@ def test_idempotent_like_without_new_notification_emits_nothing(
     assert emissions == []
 
 
+def test_relationship_update_uses_a_distinct_private_event(
+    client: FlaskClient, monkeypatch
+) -> None:
+    authenticate(client)
+    relationship = {
+        "_event_name": "relationship.updated",
+        "recipient_user_id": TARGET_ID,
+        "target_user_id": "e8d7a810-4cb8-47ec-b359-70fdc5288a9a",
+        "liked_by_me": False,
+        "likes_me": True,
+        "matched": False,
+        "match_id": None,
+    }
+    monkeypatch.setattr(
+        "app.routes.interactions.like_profile",
+        lambda *_args: {
+            "liked": True,
+            "matched": False,
+            "match_created": False,
+            "match_id": None,
+            "_events": [relationship],
+        },
+    )
+    emissions = []
+    monkeypatch.setattr(
+        "app.routes.interactions.socketio.emit",
+        lambda name, payload, **kwargs: emissions.append((name, payload, kwargs)),
+    )
+    response = client.post(
+        f"/api/v1/profiles/{TARGET_ID}/like", headers={"X-CSRF-Token": "csrf-test"}
+    )
+    assert response.status_code == 200
+    assert emissions[0][0] == "relationship.updated"
+    assert emissions[0][2] == {"to": f"user:{TARGET_ID}"}
+    assert "_event_name" not in emissions[0][1]
+
+
 def test_unlike_returns_disconnected_state(client: FlaskClient, monkeypatch) -> None:
     authenticate(client)
     expected = {"liked": False, "matched": False, "match_id": None}

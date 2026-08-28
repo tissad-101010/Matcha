@@ -3,7 +3,7 @@ import { io } from 'socket.io-client'
 
 type NotificationEvent = {
   id: string
-  type: 'like_received' | 'profile_visited'
+  type: 'like_received' | 'profile_visited' | 'match_created' | 'match_ended'
   actor_user_id: string
   created_at: string
 }
@@ -22,6 +22,11 @@ export function RealtimeNotifications({ enabled }: { enabled: boolean }) {
     socket.on('notification.created', (event: NotificationEvent) => {
       setNotification(event)
     })
+    socket.on('relationship.updated', (event: unknown) => {
+      window.dispatchEvent(
+        new CustomEvent('matcha:relationship-updated', { detail: event }),
+      )
+    })
     return () => {
       socket.disconnect()
     }
@@ -33,9 +38,16 @@ export function RealtimeNotifications({ enabled }: { enabled: boolean }) {
       className="fixed right-4 top-4 z-50 max-w-sm rounded-xl bg-[#35102d] px-5 py-4 text-sm font-semibold text-white shadow-xl"
       role="status"
     >
-      {notification.type === 'like_received'
-        ? 'Votre profil vient de recevoir un nouveau like.'
-        : 'Une personne vient de consulter votre profil.'}
+      {notificationLabel(notification.type)}
     </div>
   )
+}
+
+function notificationLabel(type: NotificationEvent['type']) {
+  if (type === 'like_received')
+    return 'Votre profil vient de recevoir un nouveau like.'
+  if (type === 'profile_visited')
+    return 'Une personne vient de consulter votre profil.'
+  if (type === 'match_created') return 'Vous avez une nouvelle connexion.'
+  return 'Une connexion vient de se terminer.'
 }

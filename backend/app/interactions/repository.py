@@ -54,8 +54,9 @@ def upsert_like_and_match(
             """,
             (source_id, target_id),
         )
-        events: list[dict[str, str]] = []
-        if previous is None or not previous[0]:
+        events: list[dict[str, object]] = []
+        like_activated = previous is None or not previous[0]
+        if like_activated:
             notification = connection.execute(
                 """INSERT INTO notifications (recipient_user_id, actor_user_id, type)
                    VALUES (%s, %s, 'like_received') RETURNING id, created_at""",
@@ -99,12 +100,42 @@ def upsert_like_and_match(
                     "INSERT INTO conversation_members (conversation_id, user_id) VALUES (%s, %s)",
                     [(conversation_id, source_id), (conversation_id, target_id)],
                 )
-                connection.executemany(
-                    """INSERT INTO notifications (recipient_user_id, actor_user_id, type, match_id)
-                       VALUES (%s, %s, 'match_created', %s)""",
-                    [(source_id, target_id, match_id), (target_id, source_id, match_id)],
+                for recipient_id, actor_id in (
+                    (source_id, target_id),
+                    (target_id, source_id),
+                ):
+                    notification = connection.execute(
+                        """INSERT INTO notifications
+                           (recipient_user_id, actor_user_id, type, match_id)
+                           VALUES (%s, %s, 'match_created', %s)
+                           RETURNING id, created_at""",
+                        (recipient_id, actor_id, match_id),
+                    ).fetchone()
+                    events.append(
+                        {
+                            "recipient_user_id": recipient_id,
+                            "id": str(notification[0]),
+                            "type": "match_created",
+                            "actor_user_id": actor_id,
+                            "created_at": notification[1].isoformat(),
+                        }
+                    )
+                events.extend(
+                    _relationship_events(source_id, target_id, True, str(match_id))
                 )
                 created = True
+        if like_activated and match_id is None:
+            events.append(
+                {
+                    "_event_name": "relationship.updated",
+                    "recipient_user_id": target_id,
+                    "target_user_id": source_id,
+                    "liked_by_me": reciprocal,
+                    "likes_me": True,
+                    "matched": False,
+                    "match_id": None,
+                }
+            )
         connection.execute("SELECT recompute_popularity(%s)", (target_id,))
         if match_id:
             connection.execute("SELECT recompute_popularity(%s)", (source_id,))
@@ -144,20 +175,61 @@ def deactivate_pair(database_url: str, source_id: str, target_id: str) -> dict[s
                RETURNING id""",
             (source_id, low_id, high_id),
         ).fetchone()
+        events = _relationship_events(source_id, target_id, False, None)
         if match:
             connection.execute(
                 """UPDATE conversations SET can_send = false,
                           closed_at = CURRENT_TIMESTAMP WHERE match_id = %s""",
                 (match[0],),
             )
-            connection.execute(
+            notification = connection.execute(
                 """INSERT INTO notifications (recipient_user_id, actor_user_id, type, match_id)
-                   VALUES (%s, %s, 'match_ended', %s)""",
+                   VALUES (%s, %s, 'match_ended', %s) RETURNING id, created_at""",
                 (target_id, source_id, match[0]),
+            ).fetchone()
+            events.append(
+                {
+                    "recipient_user_id": target_id,
+                    "id": str(notification[0]),
+                    "type": "match_ended",
+                    "actor_user_id": source_id,
+                    "created_at": notification[1].isoformat(),
+                }
             )
         connection.execute("SELECT recompute_popularity(%s)", (source_id,))
         connection.execute("SELECT recompute_popularity(%s)", (target_id,))
-    return {"liked": False, "matched": False, "match_id": None}
+    return {
+        "liked": False,
+        "matched": False,
+        "match_id": None,
+        "_events": events,
+    }
+
+
+def _relationship_events(
+    source_id: str, target_id: str, matched: bool, match_id: str | None
+) -> list[dict[str, object]]:
+    """Build symmetrical private state updates without exposing room names."""
+    return [
+        {
+            "_event_name": "relationship.updated",
+            "recipient_user_id": source_id,
+            "target_user_id": target_id,
+            "liked_by_me": matched,
+            "likes_me": matched,
+            "matched": matched,
+            "match_id": match_id,
+        },
+        {
+            "_event_name": "relationship.updated",
+            "recipient_user_id": target_id,
+            "target_user_id": source_id,
+            "liked_by_me": matched,
+            "likes_me": matched,
+            "matched": matched,
+            "match_id": match_id,
+        },
+    ]
 
 
 def insert_visit(
