@@ -56,7 +56,7 @@ def upsert_like_and_match(
         )
         events: list[dict[str, object]] = []
         like_activated = previous is None or not previous[0]
-        if like_activated:
+        if like_activated and notifications_allowed(connection, target_id, source_id):
             notification = connection.execute(
                 """INSERT INTO notifications (recipient_user_id, actor_user_id, type)
                    VALUES (%s, %s, 'like_received') RETURNING id, created_at""",
@@ -249,7 +249,9 @@ def insert_visit(
         connection.execute(
             "DELETE FROM visits WHERE visited_at < CURRENT_TIMESTAMP - INTERVAL '90 days'"
         )
-        notification_eligible = not connection.execute(
+        notification_eligible = notifications_allowed(
+            connection, visited_id, visitor_id
+        ) and not connection.execute(
             """SELECT EXISTS(SELECT 1 FROM visits
                WHERE visitor_user_id = %s AND visited_user_id = %s
                  AND notification_sent
@@ -279,3 +281,16 @@ def insert_visit(
             event = None
         connection.execute("SELECT recompute_popularity(%s)", (visited_id,))
     return True, event
+
+
+def notifications_allowed(connection, recipient_id: str, actor_id: str) -> bool:  # type: ignore[no-untyped-def]
+    """Apply the directional post-unlike rule from the latest relationship episode."""
+    row = connection.execute(
+        """SELECT status, ended_by_user_id
+           FROM matches
+           WHERE (user_low_id = LEAST(%s::uuid, %s::uuid)
+              AND user_high_id = GREATEST(%s::uuid, %s::uuid))
+           ORDER BY created_at DESC, id DESC LIMIT 1""",
+        (recipient_id, actor_id, recipient_id, actor_id),
+    ).fetchone()
+    return not (row and row[0] == "ended_unlike" and str(row[1]) == recipient_id)
