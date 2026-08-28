@@ -830,7 +830,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [x] Stocker auteur, cible, motif éventuel et date sans doublon abusif.
 - [x] Permettre de bloquer un utilisateur.
 - [x] Lors du blocage, supprimer les likes actifs, terminer le match et rendre la conversation inaccessible dans les deux sens.
-- [ ] Retirer les utilisateurs bloqués des suggestions et recherches.
+- [x] Retirer les utilisateurs bloqués des suggestions et recherches.
 - [ ] Empêcher likes, visites notifiantes, messages et notifications entre utilisateurs bloqués.
 - [x] Désactiver une conversation existante après blocage.
 - [x] Lors du déblocage, ne restaurer automatiquement ni likes, ni match, ni conversation active.
