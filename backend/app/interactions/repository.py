@@ -96,10 +96,12 @@ def upsert_like_and_match(
                 conversation_id = connection.execute(
                     "INSERT INTO conversations (match_id) VALUES (%s) RETURNING id", (match_id,)
                 ).fetchone()[0]
-                connection.executemany(
-                    "INSERT INTO conversation_members (conversation_id, user_id) VALUES (%s, %s)",
-                    [(conversation_id, source_id), (conversation_id, target_id)],
-                )
+                for member_id in (source_id, target_id):
+                    connection.execute(
+                        """INSERT INTO conversation_members (conversation_id, user_id)
+                           VALUES (%s, %s)""",
+                        (conversation_id, member_id),
+                    )
                 for recipient_id, actor_id in (
                     (source_id, target_id),
                     (target_id, source_id),

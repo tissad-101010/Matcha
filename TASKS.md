@@ -822,7 +822,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [x] Après unlike, empêcher les notifications ultérieures provenant de cet utilisateur conformément au sujet.
 - [x] Conserver la conversation passée en lecture seule après unlike et permettre à chaque utilisateur de la masquer localement.
 - [x] Exiger deux nouveaux likes actifs pour recréer un match après unlike.
-- [ ] Tester les actions simultanées et éviter les états dupliqués.
+- [x] Tester les actions simultanées et éviter les états dupliqués.
 
 ### 6.4 Blocage et signalement
 
