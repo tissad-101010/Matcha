@@ -7,6 +7,7 @@ from app.errors import register_error_handlers
 from app.extensions import init_extensions, socketio
 from app.realtime import register_realtime_handlers
 from app.routes.auth import auth_blueprint, csrf_blueprint
+from app.routes.conversations import conversations_blueprint
 from app.routes.discovery import discovery_blueprint
 from app.routes.health import health_blueprint
 from app.routes.interactions import interactions_blueprint
@@ -31,6 +32,7 @@ def create_app(test_config: dict[str, object] | None = None) -> Flask:
     register_error_handlers(app)
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(csrf_blueprint)
+    app.register_blueprint(conversations_blueprint)
     app.register_blueprint(health_blueprint)
     app.register_blueprint(interactions_blueprint)
     app.register_blueprint(discovery_blueprint)
