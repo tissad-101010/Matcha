@@ -36,6 +36,68 @@ def test_like_returns_atomic_relationship_state(client: FlaskClient, monkeypatch
     assert response.get_json() == {"data": expected}
 
 
+def test_like_emits_only_persisted_notification_without_leaking_room_data(
+    client: FlaskClient, monkeypatch
+) -> None:
+    authenticate(client)
+    event = {
+        "recipient_user_id": TARGET_ID,
+        "id": "00000000-0000-4000-8000-000000000099",
+        "type": "like_received",
+        "actor_user_id": "e8d7a810-4cb8-47ec-b359-70fdc5288a9a",
+        "created_at": "2026-08-28T09:20:00+00:00",
+    }
+    monkeypatch.setattr(
+        "app.routes.interactions.like_profile",
+        lambda *_args: {
+            "liked": True,
+            "matched": False,
+            "match_created": False,
+            "match_id": None,
+            "_events": [event],
+        },
+    )
+    emissions = []
+    monkeypatch.setattr(
+        "app.routes.interactions.socketio.emit",
+        lambda name, payload, **kwargs: emissions.append((name, payload, kwargs)),
+    )
+    response = client.post(
+        f"/api/v1/profiles/{TARGET_ID}/like", headers={"X-CSRF-Token": "csrf-test"}
+    )
+    assert response.status_code == 200
+    assert "_events" not in response.get_json()["data"]
+    assert "recipient_user_id" not in emissions[0][1]
+    assert emissions[0][0] == "notification.created"
+    assert emissions[0][2] == {"to": f"user:{TARGET_ID}"}
+
+
+def test_idempotent_like_without_new_notification_emits_nothing(
+    client: FlaskClient, monkeypatch
+) -> None:
+    authenticate(client)
+    monkeypatch.setattr(
+        "app.routes.interactions.like_profile",
+        lambda *_args: {
+            "liked": True,
+            "matched": False,
+            "match_created": False,
+            "match_id": None,
+            "_events": [],
+        },
+    )
+    emissions = []
+    monkeypatch.setattr(
+        "app.routes.interactions.socketio.emit",
+        lambda *args, **kwargs: emissions.append((args, kwargs)),
+    )
+    response = client.post(
+        f"/api/v1/profiles/{TARGET_ID}/like", headers={"X-CSRF-Token": "csrf-test"}
+    )
+    assert response.status_code == 200
+    assert emissions == []
+
+
 def test_unlike_returns_disconnected_state(client: FlaskClient, monkeypatch) -> None:
     authenticate(client)
     expected = {"liked": False, "matched": False, "match_id": None}

@@ -29,6 +29,12 @@ def _run(action, target_id: UUID):  # type: ignore[no-untyped-def]
         )
     except InteractionError as error:
         return jsonify({"error": {"code": error.code, "message": error.message}}), error.status
+    if isinstance(result, dict):
+        result = dict(result)
+        events = result.pop("_events", [])
+        for event in events:
+            recipient_id = event.pop("recipient_user_id")
+            socketio.emit("notification.created", event, to=user_room(recipient_id))
     return jsonify({"data": result})
 
 

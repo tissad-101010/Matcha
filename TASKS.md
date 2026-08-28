@@ -811,7 +811,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 - [x] Permettre explicitement de liker la photo de profil d'un autre utilisateur, uniquement si l'utilisateur courant possède lui-même une photo de profil.
 - [x] Empêcher les doublons et le like de soi-même.
-- [ ] Notifier le destinataire d'un nouveau like en moins de 10 secondes.
+- [x] Notifier le destinataire d'un nouveau like en moins de 10 secondes.
 - [x] Détecter le like réciproque de manière atomique.
 - [x] Créer ou reconnaître la connexion et notifier le match.
 - [ ] Afficher immédiatement le nouvel état aux deux utilisateurs (interface locale faite ; diffusion temps réel restante).

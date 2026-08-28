@@ -1,4 +1,5 @@
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -9,6 +10,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { App } from './App'
 
+const realtime = vi.hoisted(() => ({
+  handlers: new Map<string, (payload: unknown) => void>(),
+}))
+
+vi.mock('socket.io-client', () => ({
+  io: vi.fn(() => ({
+    on: vi.fn((event: string, handler: (payload: unknown) => void) => {
+      realtime.handlers.set(event, handler)
+    }),
+    disconnect: vi.fn(),
+  })),
+}))
+
 describe('authentication experience', () => {
   afterEach(() => {
     cleanup()
@@ -17,6 +31,7 @@ describe('authentication experience', () => {
   beforeEach(() => {
     window.history.replaceState({}, '', '/')
     sessionStorage.clear()
+    realtime.handlers.clear()
   })
 
   it('renders the login screen from the UX contract', () => {
@@ -399,5 +414,36 @@ describe('authentication experience', () => {
         }),
       }),
     )
+  })
+
+  it('displays a like notification received in real time on a private page', async () => {
+    window.history.replaceState({}, '', '/discover')
+    const responses = [
+      { data: { csrf_token: 'csrf' } },
+      { data: [], meta: { next_cursor: null, count: 0 } },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(responses.shift()),
+        }),
+      ),
+    )
+    render(<App />)
+    await screen.findByText(/aucune suggestion pour le moment/i)
+    act(() => {
+      realtime.handlers.get('notification.created')?.({
+        id: 'notification-1',
+        type: 'like_received',
+        actor_user_id: 'profile-1',
+        created_at: '2026-08-28T09:20:00+00:00',
+      })
+    })
+    expect(
+      await screen.findByText(/vient de recevoir un nouveau like/i),
+    ).toHaveAttribute('role', 'status')
   })
 })

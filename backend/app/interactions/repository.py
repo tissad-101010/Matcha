@@ -54,11 +54,21 @@ def upsert_like_and_match(
             """,
             (source_id, target_id),
         )
+        events: list[dict[str, str]] = []
         if previous is None or not previous[0]:
-            connection.execute(
+            notification = connection.execute(
                 """INSERT INTO notifications (recipient_user_id, actor_user_id, type)
-                   VALUES (%s, %s, 'like_received')""",
+                   VALUES (%s, %s, 'like_received') RETURNING id, created_at""",
                 (target_id, source_id),
+            ).fetchone()
+            events.append(
+                {
+                    "recipient_user_id": target_id,
+                    "id": str(notification[0]),
+                    "type": "like_received",
+                    "actor_user_id": source_id,
+                    "created_at": notification[1].isoformat(),
+                }
             )
 
         reciprocal = connection.execute(
@@ -103,6 +113,7 @@ def upsert_like_and_match(
         "matched": match_id is not None,
         "match_created": created,
         "match_id": str(match_id) if match_id else None,
+        "_events": events,
     }
 
 

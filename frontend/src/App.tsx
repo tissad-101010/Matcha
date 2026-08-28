@@ -8,6 +8,7 @@ import { VerifyEmailPage } from './auth/VerifyEmailPage'
 import { OnboardingPage } from './onboarding/OnboardingPage'
 import { DiscoveryPage } from './discovery/DiscoveryPage'
 import { PublicProfilePage } from './discovery/PublicProfilePage'
+import { RealtimeNotifications } from './realtime/RealtimeNotifications'
 
 function currentPath() {
   return window.location.pathname
@@ -26,6 +27,21 @@ export function App() {
     }
   }, [])
 
+  const authenticated =
+    path === '/onboarding' ||
+    path === '/discover' ||
+    path === '/search' ||
+    path.startsWith('/profiles/')
+
+  return (
+    <>
+      <RealtimeNotifications enabled={authenticated} />
+      {pageForPath(path)}
+    </>
+  )
+}
+
+function pageForPath(path: string) {
   if (path === '/register') return <RegisterPage />
   if (path === '/forgot-password') return <ForgotPasswordPage />
   if (path === '/reset-password') return <ResetPasswordPage />
