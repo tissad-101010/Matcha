@@ -38,5 +38,6 @@ export type PublicProfile = {
     match_id: string | null
     can_like: boolean
     can_message: boolean
+    match_created?: boolean
   }
 }

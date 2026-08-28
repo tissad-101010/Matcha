@@ -795,7 +795,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [x] Afficher le statut en ligne ou la date et l'heure de dernière connexion.
 - [x] Afficher si ce profil a déjà liké l'utilisateur courant.
 - [x] Afficher si les deux utilisateurs sont connectés.
-- [ ] Proposer les actions adaptées à l'état : liker la photo de profil, unliker/se déconnecter, bloquer et signaler.
+- [ ] Proposer les actions adaptées à l'état : liker la photo de profil et unliker/se déconnecter sont implémentés ; restent bloquer et signaler.
 
 ### 6.2 Visites
 
@@ -809,19 +809,19 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 6.3 Likes et matchs
 
-- [ ] Permettre explicitement de liker la photo de profil d'un autre utilisateur, uniquement si l'utilisateur courant possède lui-même une photo de profil.
-- [ ] Empêcher les doublons et le like de soi-même.
+- [x] Permettre explicitement de liker la photo de profil d'un autre utilisateur, uniquement si l'utilisateur courant possède lui-même une photo de profil.
+- [x] Empêcher les doublons et le like de soi-même.
 - [ ] Notifier le destinataire d'un nouveau like en moins de 10 secondes.
-- [ ] Détecter le like réciproque de manière atomique.
-- [ ] Créer ou reconnaître la connexion et notifier le match.
-- [ ] Afficher immédiatement le nouvel état aux deux utilisateurs.
-- [ ] Permettre l'unlike.
-- [ ] Afficher clairement l'action « se déconnecter » lorsqu'un match existe ; cette action effectue l'unlike et applique toutes ses conséquences.
-- [ ] Après unlike, désactiver le chat entre les deux utilisateurs.
-- [ ] Après unlike, notifier l'ancien match.
+- [x] Détecter le like réciproque de manière atomique.
+- [x] Créer ou reconnaître la connexion et notifier le match.
+- [ ] Afficher immédiatement le nouvel état aux deux utilisateurs (interface locale faite ; diffusion temps réel restante).
+- [x] Permettre l'unlike.
+- [x] Afficher clairement l'action « se déconnecter » lorsqu'un match existe ; cette action effectue l'unlike et applique toutes ses conséquences.
+- [x] Après unlike, désactiver le chat entre les deux utilisateurs.
+- [x] Après unlike, notifier l'ancien match.
 - [ ] Après unlike, empêcher les notifications ultérieures provenant de cet utilisateur conformément au sujet.
 - [ ] Conserver la conversation passée en lecture seule après unlike et permettre à chaque utilisateur de la masquer localement.
-- [ ] Exiger deux nouveaux likes actifs pour recréer un match après unlike.
+- [x] Exiger deux nouveaux likes actifs pour recréer un match après unlike.
 - [ ] Tester les actions simultanées et éviter les états dupliqués.
 
 ### 6.4 Blocage et signalement

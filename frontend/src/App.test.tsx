@@ -251,6 +251,69 @@ describe('authentication experience', () => {
     expect(screen.getByText('@ada42')).toBeVisible()
     expect(screen.getByText('73/100')).toBeVisible()
     expect(screen.getByText(/vous a déjà liké/i)).toBeVisible()
+    expect(
+      screen.getByRole('button', { name: 'Liker la photo de profil' }),
+    ).toBeEnabled()
     expect(screen.queryByText(/e-mail/i)).not.toBeInTheDocument()
+  })
+
+  it('likes a public profile and immediately displays the match state', async () => {
+    window.history.replaceState(
+      {},
+      '',
+      '/profiles/00000000-0000-4000-8000-000000000010',
+    )
+    const profile = {
+      id: '00000000-0000-4000-8000-000000000010',
+      username: 'ada42',
+      first_name: 'Ada',
+      last_name: 'Lovelace',
+      age: 30,
+      gender: 'woman',
+      desired_genders: ['man'],
+      bio: 'Bio',
+      photos: [],
+      tags: [],
+      location: { city: 'Paris', district: null },
+      popularity: 50,
+      presence: { online: true, last_seen_at: null },
+      viewer_state: {
+        liked_by_me: false,
+        likes_me: true,
+        matched: false,
+        match_id: null,
+        can_like: true,
+        can_message: false,
+      },
+    }
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ data: profile }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ data: { csrf_token: 'csrf' } }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            data: { liked: true, matched: true, match_id: 'match-1' },
+          }),
+      })
+    vi.stubGlobal('fetch', fetchMock)
+    render(<App />)
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Liker la photo de profil' }),
+    )
+    expect(
+      await screen.findByRole('button', { name: 'Se déconnecter' }),
+    ).toBeVisible()
+    expect(screen.getByText('Vous êtes connectés.')).toBeVisible()
   })
 })

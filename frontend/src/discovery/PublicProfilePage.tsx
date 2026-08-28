@@ -8,6 +8,7 @@ export function PublicProfilePage({ profileId }: { profileId: string }) {
   const [profile, setProfile] = useState<PublicProfile | null>(null)
   const [csrfToken, setCsrfToken] = useState('')
   const [error, setError] = useState('')
+  const [interactionPending, setInteractionPending] = useState(false)
 
   useEffect(() => {
     void Promise.all([
@@ -26,6 +27,41 @@ export function PublicProfilePage({ profileId }: { profileId: string }) {
   async function logout() {
     await requestJson('/auth/logout', 'POST', undefined, csrfToken)
     navigate('/')
+  }
+
+  async function toggleLike() {
+    if (!profile) return
+    setInteractionPending(true)
+    setError('')
+    try {
+      const response = await requestJson<{
+        data: {
+          liked: boolean
+          matched: boolean
+          match_id: string | null
+          match_created?: boolean
+        }
+      }>(
+        `/profiles/${profile.id}/like`,
+        profile.viewer_state.liked_by_me ? 'DELETE' : 'POST',
+        undefined,
+        csrfToken,
+      )
+      setProfile({
+        ...profile,
+        viewer_state: {
+          ...profile.viewer_state,
+          liked_by_me: response.data.liked,
+          matched: response.data.matched,
+          match_id: response.data.match_id,
+          can_message: response.data.matched,
+        },
+      })
+    } catch (reason: unknown) {
+      setError(errorMessage(reason))
+    } finally {
+      setInteractionPending(false)
+    }
   }
 
   return (
@@ -132,6 +168,29 @@ export function PublicProfilePage({ profileId }: { profileId: string }) {
                     ? 'Vous avez déjà liké ce profil.'
                     : 'Aucune interaction pour le moment.'}
             </div>
+            <button
+              className="mt-4 w-full rounded-xl bg-[#d43d37] px-5 py-3 font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={
+                interactionPending ||
+                (!profile.viewer_state.liked_by_me &&
+                  !profile.viewer_state.can_like)
+              }
+              onClick={() => void toggleLike()}
+            >
+              {interactionPending
+                ? 'Mise à jour…'
+                : profile.viewer_state.matched
+                  ? 'Se déconnecter'
+                  : profile.viewer_state.liked_by_me
+                    ? 'Retirer mon like'
+                    : 'Liker la photo de profil'}
+            </button>
+            {!profile.viewer_state.can_like &&
+            !profile.viewer_state.liked_by_me ? (
+              <p className="mt-2 text-sm text-[#755f6d]">
+                Ajoutez une photo principale à votre profil pour pouvoir liker.
+              </p>
+            ) : null}
           </section>
         </article>
       )}
