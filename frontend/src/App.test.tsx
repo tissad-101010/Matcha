@@ -16,6 +16,7 @@ describe('authentication experience', () => {
   })
   beforeEach(() => {
     window.history.replaceState({}, '', '/')
+    sessionStorage.clear()
   })
 
   it('renders the login screen from the UX contract', () => {
@@ -300,6 +301,11 @@ describe('authentication experience', () => {
       })
       .mockResolvedValueOnce({
         ok: true,
+        status: 204,
+        json: () => Promise.resolve(null),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
         status: 200,
         json: () =>
           Promise.resolve({
@@ -315,5 +321,83 @@ describe('authentication experience', () => {
       await screen.findByRole('button', { name: 'Se déconnecter' }),
     ).toBeVisible()
     expect(screen.getByText('Vous êtes connectés.')).toBeVisible()
+  })
+
+  it('submits a controlled profile report', async () => {
+    window.history.replaceState(
+      {},
+      '',
+      '/profiles/00000000-0000-4000-8000-000000000010',
+    )
+    const profile = {
+      id: '00000000-0000-4000-8000-000000000010',
+      username: 'ada42',
+      first_name: 'Ada',
+      last_name: 'Lovelace',
+      age: 30,
+      gender: 'woman',
+      desired_genders: ['man'],
+      bio: 'Bio',
+      photos: [],
+      tags: [],
+      location: { city: 'Paris', district: null },
+      popularity: 50,
+      presence: { online: true, last_seen_at: null },
+      viewer_state: {
+        liked_by_me: false,
+        likes_me: false,
+        matched: false,
+        match_id: null,
+        can_like: true,
+        can_message: false,
+      },
+    }
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ data: profile }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ data: { csrf_token: 'csrf' } }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 204,
+        json: () => Promise.resolve(null),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 201,
+        json: () => Promise.resolve({ data: { id: 'report-1' } }),
+      })
+    vi.stubGlobal('fetch', fetchMock)
+    render(<App />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Signaler' }))
+    fireEvent.change(screen.getByLabelText('Motif du signalement'), {
+      target: { value: 'spam' },
+    })
+    fireEvent.change(screen.getByLabelText('Description facultative'), {
+      target: { value: 'Messages répétés' },
+    })
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Envoyer le signalement' }),
+    )
+    expect(
+      await screen.findByRole('button', { name: 'Signalement envoyé' }),
+    ).toBeDisabled()
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      '/api/v1/profiles/00000000-0000-4000-8000-000000000010/reports',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({
+          reason: 'spam',
+          description: 'Messages répétés',
+        }),
+      }),
+    )
   })
 })

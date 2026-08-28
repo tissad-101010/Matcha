@@ -795,17 +795,17 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [x] Afficher le statut en ligne ou la date et l'heure de dernière connexion.
 - [x] Afficher si ce profil a déjà liké l'utilisateur courant.
 - [x] Afficher si les deux utilisateurs sont connectés.
-- [ ] Proposer les actions adaptées à l'état : liker la photo de profil et unliker/se déconnecter sont implémentés ; restent bloquer et signaler.
+- [x] Proposer les actions adaptées à l'état : liker la photo de profil, unliker/se déconnecter, bloquer et signaler.
 
 ### 6.2 Visites
 
-- [ ] Enregistrer la consultation d'un autre profil avec sa date.
-- [ ] Enregistrer chaque consultation humaine réelle mais ignorer les rafraîchissements et appels automatiques techniques.
-- [ ] Limiter à une notification de visite par paire visiteur/profil sur 24 heures.
-- [ ] Supprimer automatiquement l'historique détaillé des visites après 90 jours.
+- [x] Enregistrer la consultation d'un autre profil avec sa date.
+- [x] Enregistrer chaque consultation humaine réelle mais ignorer les rafraîchissements et appels automatiques techniques.
+- [x] Limiter à une notification de visite par paire visiteur/profil sur 24 heures.
+- [x] Supprimer automatiquement l'historique détaillé des visites après 90 jours.
 - [ ] Créer la notification de visite en moins de 10 secondes.
-- [ ] Ne pas enregistrer une consultation de son propre profil.
-- [ ] Ne pas laisser les utilisateurs bloqués interagir via ce mécanisme.
+- [x] Ne pas enregistrer une consultation de son propre profil.
+- [x] Ne pas laisser les utilisateurs bloqués interagir via ce mécanisme.
 
 ### 6.3 Likes et matchs
 
@@ -826,14 +826,14 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 6.4 Blocage et signalement
 
-- [ ] Permettre de signaler un profil comme faux compte.
-- [ ] Stocker auteur, cible, motif éventuel et date sans doublon abusif.
-- [ ] Permettre de bloquer un utilisateur.
-- [ ] Lors du blocage, supprimer les likes actifs, terminer le match et rendre la conversation inaccessible dans les deux sens.
+- [x] Permettre de signaler un profil comme faux compte.
+- [x] Stocker auteur, cible, motif éventuel et date sans doublon abusif.
+- [x] Permettre de bloquer un utilisateur.
+- [x] Lors du blocage, supprimer les likes actifs, terminer le match et rendre la conversation inaccessible dans les deux sens.
 - [ ] Retirer les utilisateurs bloqués des suggestions et recherches.
 - [ ] Empêcher likes, visites notifiantes, messages et notifications entre utilisateurs bloqués.
-- [ ] Désactiver une conversation existante après blocage.
-- [ ] Lors du déblocage, ne restaurer automatiquement ni likes, ni match, ni conversation active.
+- [x] Désactiver une conversation existante après blocage.
+- [x] Lors du déblocage, ne restaurer automatiquement ni likes, ni match, ni conversation active.
 - [ ] Vérifier le blocage côté serveur sur chaque action, pas seulement dans l'interface.
 
 ---

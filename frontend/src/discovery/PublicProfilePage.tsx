@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type SyntheticEvent } from 'react'
 
 import { errorMessage, requestJson } from '../auth/api'
 import { navigate } from '../navigation'
@@ -9,6 +9,10 @@ export function PublicProfilePage({ profileId }: { profileId: string }) {
   const [csrfToken, setCsrfToken] = useState('')
   const [error, setError] = useState('')
   const [interactionPending, setInteractionPending] = useState(false)
+  const [reportOpen, setReportOpen] = useState(false)
+  const [reportReason, setReportReason] = useState('fake_profile')
+  const [reportDescription, setReportDescription] = useState('')
+  const [reportSent, setReportSent] = useState(false)
 
   useEffect(() => {
     void Promise.all([
@@ -18,6 +22,18 @@ export function PublicProfilePage({ profileId }: { profileId: string }) {
       .then(([profileResponse, session]) => {
         setProfile(profileResponse.data)
         setCsrfToken(session.data.csrf_token)
+        const visitKey = `matcha:visited:${profileResponse.data.id}`
+        if (sessionStorage.getItem(visitKey) !== 'true') {
+          sessionStorage.setItem(visitKey, 'true')
+          void requestJson(
+            `/profiles/${profileResponse.data.id}/visit`,
+            'POST',
+            undefined,
+            session.data.csrf_token,
+          ).catch(() => {
+            sessionStorage.removeItem(visitKey)
+          })
+        }
       })
       .catch((reason: unknown) => {
         setError(errorMessage(reason))
@@ -57,6 +73,48 @@ export function PublicProfilePage({ profileId }: { profileId: string }) {
           can_message: response.data.matched,
         },
       })
+    } catch (reason: unknown) {
+      setError(errorMessage(reason))
+    } finally {
+      setInteractionPending(false)
+    }
+  }
+
+  async function blockProfile() {
+    if (!profile || !window.confirm(`Bloquer ${profile.first_name} ?`)) return
+    setInteractionPending(true)
+    setError('')
+    try {
+      await requestJson(
+        `/profiles/${profile.id}/block`,
+        'POST',
+        undefined,
+        csrfToken,
+      )
+      navigate('/discover')
+    } catch (reason: unknown) {
+      setError(errorMessage(reason))
+      setInteractionPending(false)
+    }
+  }
+
+  async function submitReport(event: SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!profile) return
+    setInteractionPending(true)
+    setError('')
+    try {
+      await requestJson(
+        `/profiles/${profile.id}/reports`,
+        'POST',
+        {
+          reason: reportReason,
+          description: reportDescription.trim() || null,
+        },
+        csrfToken,
+      )
+      setReportSent(true)
+      setReportOpen(false)
     } catch (reason: unknown) {
       setError(errorMessage(reason))
     } finally {
@@ -190,6 +248,76 @@ export function PublicProfilePage({ profileId }: { profileId: string }) {
               <p className="mt-2 text-sm text-[#755f6d]">
                 Ajoutez une photo principale à votre profil pour pouvoir liker.
               </p>
+            ) : null}
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <button
+                className="rounded-xl border border-[#d43d37] px-4 py-3 font-semibold text-[#a52e29] disabled:opacity-50"
+                disabled={interactionPending}
+                onClick={() => void blockProfile()}
+              >
+                Bloquer
+              </button>
+              <button
+                className="rounded-xl border border-[#755f6d] px-4 py-3 font-semibold disabled:opacity-50"
+                disabled={interactionPending || reportSent}
+                onClick={() => {
+                  setReportOpen((open) => !open)
+                }}
+              >
+                {reportSent ? 'Signalement envoyé' : 'Signaler'}
+              </button>
+            </div>
+            {reportOpen ? (
+              <form
+                className="mt-4 rounded-2xl border border-[#efdeda] p-4"
+                onSubmit={(event) => void submitReport(event)}
+              >
+                <label
+                  className="block text-sm font-semibold"
+                  htmlFor="report-reason"
+                >
+                  Motif du signalement
+                </label>
+                <select
+                  className="mt-2 w-full rounded-lg border border-[#d9c7cf] p-2"
+                  id="report-reason"
+                  value={reportReason}
+                  onChange={(event) => {
+                    setReportReason(event.target.value)
+                  }}
+                >
+                  <option value="fake_profile">Faux profil</option>
+                  <option value="inappropriate_content">
+                    Contenu inapproprié
+                  </option>
+                  <option value="harassment">Harcèlement</option>
+                  <option value="spam">Spam</option>
+                  <option value="underage">Personne mineure</option>
+                  <option value="other">Autre</option>
+                </select>
+                <label
+                  className="mt-3 block text-sm font-semibold"
+                  htmlFor="report-description"
+                >
+                  Description facultative
+                </label>
+                <textarea
+                  className="mt-2 w-full rounded-lg border border-[#d9c7cf] p-2"
+                  id="report-description"
+                  maxLength={1000}
+                  value={reportDescription}
+                  onChange={(event) => {
+                    setReportDescription(event.target.value)
+                  }}
+                />
+                <button
+                  className="mt-3 w-full rounded-lg bg-[#35102d] px-4 py-2 font-semibold text-white"
+                  disabled={interactionPending}
+                  type="submit"
+                >
+                  Envoyer le signalement
+                </button>
+              </form>
             ) : null}
           </section>
         </article>

@@ -45,3 +45,66 @@ def test_unlike_returns_disconnected_state(client: FlaskClient, monkeypatch) -> 
     )
     assert response.status_code == 200
     assert response.get_json() == {"data": expected}
+
+
+def test_block_is_csrf_protected_and_returns_summary(client: FlaskClient, monkeypatch) -> None:
+    authenticate(client)
+    expected = {"user_id": TARGET_ID, "created_at": "2026-08-28T08:00:00+00:00"}
+    monkeypatch.setattr("app.routes.interactions.block_profile", lambda *_args: expected)
+    response = client.post(
+        f"/api/v1/profiles/{TARGET_ID}/block", headers={"X-CSRF-Token": "csrf-test"}
+    )
+    assert response.status_code == 200
+    assert response.get_json() == {"data": expected}
+
+
+def test_unblock_returns_no_content(client: FlaskClient, monkeypatch) -> None:
+    authenticate(client)
+    monkeypatch.setattr("app.routes.interactions.unblock_profile", lambda *_args: None)
+    response = client.delete(
+        f"/api/v1/profiles/{TARGET_ID}/block", headers={"X-CSRF-Token": "csrf-test"}
+    )
+    assert response.status_code == 204
+
+
+def test_report_validates_and_normalizes_input(client: FlaskClient, monkeypatch) -> None:
+    authenticate(client)
+    captured = {}
+
+    def report(*args):  # type: ignore[no-untyped-def]
+        captured["args"] = args
+        return {"id": "00000000-0000-4000-8000-000000000099"}
+
+    monkeypatch.setattr("app.routes.interactions.report_profile", report)
+    response = client.post(
+        f"/api/v1/profiles/{TARGET_ID}/reports",
+        json={"reason": "fake_profile", "description": "  détails   utiles  "},
+        headers={"X-CSRF-Token": "csrf-test"},
+    )
+    assert response.status_code == 201
+    assert captured["args"][-2:] == ("fake_profile", "détails utiles")
+
+
+def test_report_rejects_unknown_reason(client: FlaskClient) -> None:
+    authenticate(client)
+    response = client.post(
+        f"/api/v1/profiles/{TARGET_ID}/reports",
+        json={"reason": "revenge"},
+        headers={"X-CSRF-Token": "csrf-test"},
+    )
+    assert response.status_code == 422
+    assert "reason" in response.get_json()["error"]["fields"]
+
+
+def test_explicit_visit_is_recorded_once_by_the_client(client: FlaskClient, monkeypatch) -> None:
+    authenticate(client)
+    calls = []
+    monkeypatch.setattr(
+        "app.routes.interactions.record_profile_visit",
+        lambda *args: calls.append(args),
+    )
+    response = client.post(
+        f"/api/v1/profiles/{TARGET_ID}/visit", headers={"X-CSRF-Token": "csrf-test"}
+    )
+    assert response.status_code == 204
+    assert len(calls) == 1

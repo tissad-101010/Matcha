@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from app.interactions.repository import deactivate_pair, upsert_like_and_match
+from app.interactions.repository import deactivate_pair, insert_visit, upsert_like_and_match
 
 
 @dataclass(frozen=True)
@@ -38,3 +38,11 @@ def unlike_profile(database_url: str, source_id: str, target_id: str) -> dict[st
     if result is None:
         raise InteractionError("not_found", "Like actif introuvable.", 404)
     return result
+
+
+def record_profile_visit(database_url: str, visitor_id: str, visited_id: str) -> None:
+    """Record only explicit visits between distinct, authorized users."""
+    if visitor_id == visited_id:
+        raise InteractionError("self_interaction", "Votre propre profil n'est pas une visite.", 422)
+    if not insert_visit(database_url, visitor_id, visited_id):
+        raise InteractionError("not_found", "Profil introuvable.", 404)

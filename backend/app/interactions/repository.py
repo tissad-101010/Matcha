@@ -147,3 +147,41 @@ def deactivate_pair(database_url: str, source_id: str, target_id: str) -> dict[s
         connection.execute("SELECT recompute_popularity(%s)", (source_id,))
         connection.execute("SELECT recompute_popularity(%s)", (target_id,))
     return {"liked": False, "matched": False, "match_id": None}
+
+
+def insert_visit(database_url: str, visitor_id: str, visited_id: str) -> bool:
+    """Record an authorized human visit and notify at most once per 24 hours."""
+    with psycopg.connect(database_url) as connection:
+        authorized = connection.execute(
+            """SELECT EXISTS(SELECT 1 FROM public_profiles WHERE user_id = %s)
+               AND NOT EXISTS(SELECT 1 FROM blocks WHERE
+                   (blocker_user_id = %s AND blocked_user_id = %s)
+                   OR (blocker_user_id = %s AND blocked_user_id = %s))""",
+            (visited_id, visitor_id, visited_id, visited_id, visitor_id),
+        ).fetchone()[0]
+        if not authorized:
+            return False
+        connection.execute(
+            "DELETE FROM visits WHERE visited_at < CURRENT_TIMESTAMP - INTERVAL '90 days'"
+        )
+        notification_eligible = not connection.execute(
+            """SELECT EXISTS(SELECT 1 FROM visits
+               WHERE visitor_user_id = %s AND visited_user_id = %s
+                 AND notification_sent
+                 AND visited_at >= CURRENT_TIMESTAMP - INTERVAL '24 hours')""",
+            (visitor_id, visited_id),
+        ).fetchone()[0]
+        visit = connection.execute(
+            """INSERT INTO visits (visitor_user_id, visited_user_id, notification_sent)
+               VALUES (%s, %s, %s) RETURNING id""",
+            (visitor_id, visited_id, notification_eligible),
+        ).fetchone()
+        if notification_eligible:
+            connection.execute(
+                """INSERT INTO notifications
+                   (recipient_user_id, actor_user_id, type, visit_id)
+                   VALUES (%s, %s, 'profile_visited', %s)""",
+                (visited_id, visitor_id, visit[0]),
+            )
+        connection.execute("SELECT recompute_popularity(%s)", (visited_id,))
+    return True
