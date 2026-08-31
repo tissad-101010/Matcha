@@ -684,7 +684,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [x] Calculer l'âge côté serveur et ne jamais accepter un âge fourni comme valeur faisant autorité.
 - [x] Permettre de définir genre, préférences sexuelles, date de naissance et biographie via l'API et l'onboarding.
 - [x] Recueillir avant les préférences sexuelles un consentement explicite distinct, non précoché, informé, horodaté et versionné.
-- [ ] Recueillir séparément le consentement GPS ; ne jamais fusionner les deux consentements.
+- [x] Recueillir séparément le consentement GPS ; ne jamais fusionner les deux consentements.
 - [ ] Permettre de consulter et retirer chaque consentement aussi facilement qu'il a été donné.
 - [x] Après retrait du consentement aux préférences, effacer la valeur et suspendre suggestions, recherche et matching jusqu'à nouveau consentement.
 - [x] Permettre via l'API d'ajouter des tags réutilisables et de remplacer la sélection du profil ; l'interface onboarding reste à brancher.
@@ -692,7 +692,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [ ] Lors d'une modification d'e-mail, conserver l'ancienne adresse active jusqu'à validation du lien unique envoyé à la nouvelle adresse.
 - [ ] Vérifier à nouveau l'unicité de la nouvelle adresse avant de finaliser la modification.
 - [ ] Permettre toutes ces modifications à tout moment.
-- [ ] Afficher clairement les informations manquantes qui bloquent le matching.
+- [x] Afficher clairement les informations manquantes qui bloquent le matching.
 - [x] Considérer le profil complet uniquement avec majorité, genre, biographie non vide, au moins un tag et une localisation valide.
 - [x] Exclure des découvertes les comptes incomplets, inactifs et non vérifiés et rendre leur profil direct indisponible aux autres membres.
 - [ ] Ajouter une suppression de compte protégée par mot de passe ou réauthentification récente.
@@ -714,7 +714,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ### 4.3 Localisation respectueuse du consentement
 
-- [ ] Demander explicitement l'autorisation avant d'appeler la géolocalisation du navigateur.
+- [x] Demander explicitement l'autorisation avant d'appeler la géolocalisation du navigateur.
 - [x] Enregistrer via l'API le consentement GPS séparé, versionné et retirable ; le branchement à l'écran reste à faire.
 - [x] Convertir les coordonnées en ville/quartier approximatif via le centroïde local le plus proche sans exposer leur précision.
 - [x] Remplacer immédiatement les coordonnées GPS brutes par le centroïde du catalogue avant le stockage métier et ne jamais les renvoyer.

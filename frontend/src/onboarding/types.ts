@@ -26,8 +26,17 @@ export type PrivateProfile = {
   desired_genders: Gender[]
   tags: Tag[]
   photos: PhotoSummary[]
-  location: { catalog_location_id: string; city: string } | null
-  consents: Array<{ purpose: string; granted: boolean }>
+  location: {
+    catalog_location_id: string
+    city: string
+    source: 'manual' | 'gps_reduced'
+  } | null
+  consents: Array<{
+    purpose: string
+    granted: boolean
+    policy_version?: string
+    occurred_at?: string
+  }>
   profile_complete: boolean
   missing_profile_fields: string[]
 }

@@ -63,7 +63,16 @@ describe('authentication experience', () => {
 
   it('loads the mandatory onboarding from real API contracts', async () => {
     window.history.replaceState({}, '', '/onboarding')
-    const responses = [
+    const getCurrentPosition = vi.fn((success: PositionCallback) => {
+      success({
+        coords: { latitude: 48.85, longitude: 2.35 },
+      } as GeolocationPosition)
+    })
+    Object.defineProperty(window.navigator, 'geolocation', {
+      configurable: true,
+      value: { getCurrentPosition },
+    })
+    const responses: unknown[] = [
       { data: { csrf_token: 'csrf' } },
       {
         data: {
@@ -115,6 +124,28 @@ describe('authentication experience', () => {
     expect(screen.getByText('Localisation approximative')).toBeVisible()
     expect(screen.getByText('Photos facultatives')).toBeVisible()
     expect(screen.getByLabelText(/je consens explicitement/i)).not.toBeChecked()
+    expect(screen.getByText('Votre genre')).toBeVisible()
+    expect(getCurrentPosition).not.toHaveBeenCalled()
+    responses.push(null, {
+      data: {
+        catalog_location_id: 'location-1',
+        city: 'Paris',
+        source: 'gps_reduced',
+      },
+    })
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /utiliser ma position approximative/i,
+      }),
+    )
+    await waitFor(() => {
+      expect(getCurrentPosition).toHaveBeenCalledOnce()
+    })
+    expect(
+      await screen.findByRole('button', {
+        name: /retirer mon consentement gps/i,
+      }),
+    ).toBeVisible()
   })
 
   it('renders ranked discovery cards from the API', async () => {

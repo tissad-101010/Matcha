@@ -32,6 +32,7 @@ export function OnboardingPage() {
   const [saving, setSaving] = useState(false)
   const [photos, setPhotos] = useState<PhotoSummary[]>([])
   const [photoBusy, setPhotoBusy] = useState(false)
+  const [gpsBusy, setGpsBusy] = useState(false)
 
   useEffect(() => {
     void loadOnboarding()
@@ -174,6 +175,89 @@ export function OnboardingPage() {
     }
   }
 
+  async function requestGpsLocation() {
+    if (!loaded) return
+    const geolocation = Reflect.get(navigator, 'geolocation') as
+      Geolocation | undefined
+    if (!geolocation) {
+      setError(
+        'La géolocalisation est indisponible. Choisissez une ville manuellement.',
+      )
+      return
+    }
+    setGpsBusy(true)
+    setError('')
+    try {
+      await requestJson(
+        '/me/consents/location',
+        'PUT',
+        { confirmed: true, policy_version: loaded.policyVersion },
+        loaded.csrfToken,
+      )
+      const position = await currentPosition(geolocation)
+      const response = await requestJson<{ data: PrivateProfile['location'] }>(
+        '/me/location/gps',
+        'PUT',
+        {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        },
+        loaded.csrfToken,
+      )
+      setLoaded({
+        ...loaded,
+        profile: {
+          ...loaded.profile,
+          location: response.data,
+          consents: replaceConsent(
+            loaded.profile.consents,
+            'gps_location',
+            true,
+            loaded.policyVersion,
+          ),
+        },
+      })
+    } catch (reason) {
+      setError(errorMessage(reason))
+    } finally {
+      setGpsBusy(false)
+    }
+  }
+
+  async function withdrawGpsConsent() {
+    if (!loaded) return
+    setGpsBusy(true)
+    setError('')
+    try {
+      await requestJson(
+        '/me/consents/location',
+        'DELETE',
+        undefined,
+        loaded.csrfToken,
+      )
+      setLoaded({
+        ...loaded,
+        profile: {
+          ...loaded.profile,
+          location:
+            loaded.profile.location?.source === 'gps_reduced'
+              ? null
+              : loaded.profile.location,
+          consents: replaceConsent(
+            loaded.profile.consents,
+            'gps_location',
+            false,
+            loaded.policyVersion,
+          ),
+        },
+      })
+    } catch (reason) {
+      setError(errorMessage(reason))
+    } finally {
+      setGpsBusy(false)
+    }
+  }
+
   if (!loaded) {
     return (
       <main className="grid min-h-screen place-items-center bg-[#fffaf7] p-6 text-[#35102d]">
@@ -200,6 +284,9 @@ export function OnboardingPage() {
   const consentActive = loaded.profile.consents.some(
     (consent) => consent.purpose === 'matching_preferences' && consent.granted,
   )
+  const gpsConsentActive = loaded.profile.consents.some(
+    (consent) => consent.purpose === 'gps_location' && consent.granted,
+  )
   return (
     <main className="min-h-screen bg-[#fffaf7] px-4 py-8 text-[#281320] sm:px-8">
       <form
@@ -219,6 +306,21 @@ export function OnboardingPage() {
           </p>
         </header>
         <StatusMessage message={error} />
+        {loaded.profile.missing_profile_fields.length > 0 && (
+          <div
+            className="mt-5 rounded-xl border border-[#f0c7bf] bg-[#fff1ed] p-4 text-sm"
+            role="status"
+          >
+            <p className="font-semibold">
+              Informations requises avant le matching :
+            </p>
+            <ul className="mt-2 list-inside list-disc">
+              {loaded.profile.missing_profile_fields.map((field) => (
+                <li key={field}>{missingFieldLabel(field)}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           <OnboardingSection number="1" title="Votre profil">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -353,10 +455,37 @@ export function OnboardingPage() {
                 ))}
               </select>
             </label>
-            <div className="rounded-xl bg-[#f7f0f4] p-4 text-sm text-[#755f6d]">
-              La géolocalisation GPS facultative sera proposée séparément avec
-              son propre consentement. La saisie manuelle garantit le
-              fonctionnement hors ligne.
+            <div className="space-y-3 rounded-xl bg-[#f7f0f4] p-4 text-sm text-[#755f6d]">
+              <p>
+                Le GPS est facultatif et n’est demandé qu’après votre action.
+                Les coordonnées exactes sont immédiatement remplacées par une
+                zone approximative.
+              </p>
+              {gpsConsentActive ? (
+                <button
+                  type="button"
+                  className="font-semibold text-[#d43d37]"
+                  disabled={gpsBusy}
+                  onClick={() => void withdrawGpsConsent()}
+                >
+                  Retirer mon consentement GPS
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="font-semibold text-[#d43d37]"
+                  disabled={gpsBusy}
+                  onClick={() => void requestGpsLocation()}
+                >
+                  {gpsBusy
+                    ? 'Localisation en cours…'
+                    : 'Utiliser ma position approximative'}
+                </button>
+              )}
+              <p>
+                La saisie manuelle reste obligatoire si le GPS est refusé ou
+                indisponible.
+              </p>
             </div>
           </OnboardingSection>
           <OnboardingSection number="5" title="Photos facultatives">
@@ -447,6 +576,43 @@ async function loadOnboarding(): Promise<LoadedData> {
     csrfToken: session.data.csrf_token,
     policyVersion: consents.meta.current_policy_version,
   }
+}
+
+function currentPosition(geolocation: Geolocation) {
+  return new Promise<GeolocationPosition>((resolve, reject) => {
+    geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: false,
+      timeout: 10_000,
+      maximumAge: 60_000,
+    })
+  })
+}
+
+function replaceConsent(
+  consents: PrivateProfile['consents'],
+  purpose: string,
+  granted: boolean,
+  policyVersion: string,
+) {
+  return [
+    ...consents.filter((consent) => consent.purpose !== purpose),
+    {
+      purpose,
+      granted,
+      policy_version: policyVersion,
+      occurred_at: new Date().toISOString(),
+    },
+  ]
+}
+
+function missingFieldLabel(field: string) {
+  const labels: Record<string, string> = {
+    gender: 'Votre genre',
+    bio: 'Une biographie',
+    tags: 'Au moins un centre d’intérêt',
+    location: 'Une ville ou un quartier',
+  }
+  return labels[field] ?? field
 }
 
 function OnboardingSection({

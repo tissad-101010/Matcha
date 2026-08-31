@@ -124,6 +124,13 @@ export function DiscoveryPage({ advanced = false }: { advanced?: boolean }) {
               Activité
             </button>
             <button
+              onClick={() => {
+                navigate('/onboarding')
+              }}
+            >
+              Mon profil
+            </button>
+            <button
               className={advanced ? '' : 'text-[#d43d37]'}
               onClick={() => {
                 navigate('/discover')
