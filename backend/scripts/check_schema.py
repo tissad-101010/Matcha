@@ -45,7 +45,7 @@ def insert_account(connection: psycopg.Connection[Any], user_id: UUID, suffix: s
 def check_metadata(connection: psycopg.Connection[Any]) -> None:
     """Check migration count and the privacy boundary of the public view."""
     migration_count = connection.execute("SELECT count(*) FROM schema_migrations").fetchone()
-    assert migration_count == (16,)
+    assert migration_count == (17,)
 
     public_columns = {
         row[0]

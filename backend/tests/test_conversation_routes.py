@@ -84,3 +84,35 @@ def test_message_endpoint_rejects_invalid_json_and_uuid(client: FlaskClient, mon
     )
     assert response.status_code == 422
     assert response.get_json()["error"]["code"] == "validation_error"
+
+
+def test_member_can_list_conversations_and_messages(client: FlaskClient, monkeypatch) -> None:
+    authenticate(client)
+    monkeypatch.setattr("app.routes.conversations.conversations", lambda *_args: [{"id": "c"}])
+    monkeypatch.setattr("app.routes.conversations.messages", lambda *_args: [{"id": "m"}])
+    listed = client.get("/api/v1/conversations")
+    history = client.get(f"/api/v1/conversations/{CONVERSATION_ID}/messages?limit=25")
+    assert listed.status_code == 200
+    assert listed.get_json()["meta"]["count"] == 1
+    assert history.status_code == 200
+    assert history.get_json()["meta"] == {"count": 1, "limit": 25}
+
+
+def test_message_history_rejects_invalid_pagination(client: FlaskClient) -> None:
+    authenticate(client)
+    path = f"/api/v1/conversations/{CONVERSATION_ID}/messages"
+    assert client.get(f"{path}?limit=51").status_code == 422
+    assert client.get(f"{path}?before=nope").status_code == 422
+
+
+def test_member_can_mark_message_read(client: FlaskClient, monkeypatch) -> None:
+    authenticate(client)
+    calls = []
+    monkeypatch.setattr("app.routes.conversations.mark_read", lambda *args: calls.append(args))
+    response = client.post(
+        f"/api/v1/conversations/{CONVERSATION_ID}/read",
+        json={"message_id": "e3fa8774-5162-4b31-a8d6-aef88210c059"},
+        headers={"X-CSRF-Token": "csrf-test"},
+    )
+    assert response.status_code == 204
+    assert str(calls[0][2]) == CONVERSATION_ID

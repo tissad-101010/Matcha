@@ -19,6 +19,7 @@ vi.mock('socket.io-client', () => ({
     on: vi.fn((event: string, handler: (payload: unknown) => void) => {
       realtime.handlers.set(event, handler)
     }),
+    emit: vi.fn(),
     disconnect: vi.fn(),
   })),
 }))
@@ -504,5 +505,20 @@ describe('authentication experience', () => {
     })
     expect(await screen.findByText('Vous êtes connectés.')).toBeVisible()
     expect(screen.getByRole('button', { name: 'Se déconnecter' })).toBeVisible()
+  })
+
+  it('shows the authenticated empty conversation state', async () => {
+    window.history.replaceState({}, '', '/messages')
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ data: [], meta: { count: 0 } }),
+      }),
+    )
+    render(<App />)
+    expect(await screen.findByText(/aucune conversation/i)).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Messages' })).toBeVisible()
   })
 })

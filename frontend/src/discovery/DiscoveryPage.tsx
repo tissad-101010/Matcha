@@ -110,6 +110,13 @@ export function DiscoveryPage({ advanced = false }: { advanced?: boolean }) {
             aria-label="Navigation principale"
           >
             <button
+              onClick={() => {
+                navigate('/messages')
+              }}
+            >
+              Messages
+            </button>
+            <button
               className={advanced ? '' : 'text-[#d43d37]'}
               onClick={() => {
                 navigate('/discover')

@@ -842,22 +842,22 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 - [x] Authentifier la connexion Socket.IO à partir de la session serveur existante.
 - [x] Refuser l'ouverture ou les événements Socket.IO d'un utilisateur non authentifié.
-- [ ] Revalider côté serveur l'appartenance à la conversation pour chaque message envoyé.
-- [ ] Exiger un UUID v4 généré côté client pour chaque événement Socket.IO d'écriture.
+- [x] Revalider côté serveur l'appartenance à la conversation pour chaque message envoyé.
+- [x] Exiger un UUID v4 généré côté client pour chaque événement Socket.IO d'écriture.
 - [ ] Valider l'UUID côté serveur et conserver sa clé d'idempotence dans Valkey pendant 24 heures.
 - [x] Persister d'abord le message ou la notification dans PostgreSQL avant acquittement et diffusion.
-- [ ] Créer ou retrouver une conversation pour chaque connexion mutuelle.
-- [ ] Autoriser l'accès uniquement aux deux participants encore connectés et non bloqués.
-- [ ] Créer l'interface de liste des conversations.
-- [ ] Créer l'interface d'une conversation et son historique paginé.
+- [x] Créer ou retrouver une conversation pour chaque connexion mutuelle.
+- [x] Autoriser l'accès uniquement aux deux participants encore connectés et non bloqués.
+- [x] Créer l'interface de liste des conversations.
+- [x] Créer l'interface d'une conversation et son historique paginé.
 - [ ] Envoyer, persister puis transmettre les messages en moins de 10 secondes.
-- [ ] Valider longueur, encodage et contenu des messages.
-- [ ] Protéger l'affichage contre les XSS.
-- [ ] Ajouter date, auteur et ordre fiable des messages.
-- [ ] Gérer l'état lu/non lu.
-- [ ] Afficher depuis toute page l'arrivée d'un nouveau message.
-- [ ] Gérer reconnexion, messages en double et perte temporaire de connexion.
-- [ ] Refuser immédiatement les messages après unlike ou blocage.
+- [x] Valider longueur, encodage et contenu des messages.
+- [x] Protéger l'affichage contre les XSS.
+- [x] Ajouter date, auteur et ordre fiable des messages.
+- [x] Gérer l'état lu/non lu.
+- [x] Afficher depuis toute page l'arrivée d'un nouveau message.
+- [x] Gérer reconnexion, messages en double et perte temporaire de connexion.
+- [x] Refuser immédiatement les messages après unlike ou blocage.
 
 ---
 

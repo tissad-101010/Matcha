@@ -3,7 +3,12 @@ import { io } from 'socket.io-client'
 
 type NotificationEvent = {
   id: string
-  type: 'like_received' | 'profile_visited' | 'match_created' | 'match_ended'
+  type:
+    | 'like_received'
+    | 'profile_visited'
+    | 'match_created'
+    | 'message_received'
+    | 'match_ended'
   actor_user_id: string
   created_at: string
 }
@@ -49,5 +54,6 @@ function notificationLabel(type: NotificationEvent['type']) {
   if (type === 'profile_visited')
     return 'Une personne vient de consulter votre profil.'
   if (type === 'match_created') return 'Vous avez une nouvelle connexion.'
+  if (type === 'message_received') return 'Vous avez reçu un nouveau message.'
   return 'Une connexion vient de se terminer.'
 }
