@@ -863,18 +863,18 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 ## Phase 8 — Notifications temps réel (Obligatoire)
 
-- [ ] Créer une notification lors d'un like reçu.
-- [ ] Créer une notification lors d'une visite de profil.
-- [ ] Créer une notification lors d'un nouveau message.
-- [ ] Créer une notification lors d'un like réciproque/match.
-- [ ] Créer une notification lorsqu'une connexion effectue un unlike.
+- [x] Créer une notification lors d'un like reçu.
+- [x] Créer une notification lors d'une visite de profil.
+- [x] Créer une notification lors d'un nouveau message.
+- [x] Créer une notification lors d'un like réciproque/match.
+- [x] Créer une notification lorsqu'une connexion effectue un unlike.
 - [ ] Livrer chaque notification en moins de 10 secondes.
-- [ ] Afficher sur toutes les pages un indicateur de notifications non lues.
-- [ ] Créer une liste de notifications avec type, auteur, date et lien utile.
-- [ ] Permettre de marquer une notification comme lue, individuellement ou globalement.
-- [ ] Éviter les notifications dupliquées.
-- [ ] Respecter blocages et règles post-unlike avant création et livraison.
-- [ ] Recharger les notifications manquées après une reconnexion.
+- [x] Afficher sur toutes les pages un indicateur de notifications non lues.
+- [x] Créer une liste de notifications avec type, auteur, date et lien utile.
+- [x] Permettre de marquer une notification comme lue, individuellement ou globalement.
+- [x] Éviter les notifications dupliquées.
+- [x] Respecter blocages et règles post-unlike avant création et livraison.
+- [x] Recharger les notifications manquées après une reconnexion.
 
 ---
 
