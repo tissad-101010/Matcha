@@ -50,3 +50,37 @@ def test_unknown_or_unauthorized_conversation_is_not_disclosed(
     )
     assert response.status_code == 404
     assert response.get_json()["error"]["code"] == "not_found"
+
+
+def test_authenticated_member_can_send_message(client: FlaskClient, monkeypatch) -> None:
+    authenticate(client)
+    calls = []
+    monkeypatch.setattr(
+        "app.routes.conversations.send_message",
+        lambda *args: calls.append(args) or {"id": "message-id", "body": args[-1]},
+    )
+    response = client.post(
+        f"/api/v1/conversations/{CONVERSATION_ID}/messages",
+        json={
+            "client_message_id": "e3fa8774-5162-4b31-a8d6-aef88210c059",
+            "body": "Bonjour !",
+        },
+        headers={"X-CSRF-Token": "csrf-test"},
+    )
+    assert response.status_code == 201
+    assert response.get_json()["data"]["body"] == "Bonjour !"
+    assert str(calls[0][2]) == CONVERSATION_ID
+
+
+def test_message_endpoint_rejects_invalid_json_and_uuid(client: FlaskClient, monkeypatch) -> None:
+    authenticate(client)
+    path = f"/api/v1/conversations/{CONVERSATION_ID}/messages"
+    headers = {"X-CSRF-Token": "csrf-test"}
+    assert client.post(path, data="no-json", headers=headers).status_code == 422
+    response = client.post(
+        path,
+        json={"client_message_id": "not-a-uuid", "body": "Bonjour"},
+        headers=headers,
+    )
+    assert response.status_code == 422
+    assert response.get_json()["error"]["code"] == "validation_error"
