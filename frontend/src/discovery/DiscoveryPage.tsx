@@ -117,6 +117,13 @@ export function DiscoveryPage({ advanced = false }: { advanced?: boolean }) {
               Messages
             </button>
             <button
+              onClick={() => {
+                navigate('/activity')
+              }}
+            >
+              Activité
+            </button>
+            <button
               className={advanced ? '' : 'text-[#d43d37]'}
               onClick={() => {
                 navigate('/discover')

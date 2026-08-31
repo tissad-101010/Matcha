@@ -681,7 +681,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 
 - [x] Créer le parcours frontend de complétion après la première connexion avec profil, préférences consenties, tags et localisation manuelle.
 - [x] Refuser l'inscription avant création du compte lorsque la date de naissance indique moins de 18 ans.
-- [ ] Calculer l'âge côté serveur et ne jamais accepter un âge fourni comme valeur faisant autorité.
+- [x] Calculer l'âge côté serveur et ne jamais accepter un âge fourni comme valeur faisant autorité.
 - [x] Permettre de définir genre, préférences sexuelles, date de naissance et biographie via l'API et l'onboarding.
 - [x] Recueillir avant les préférences sexuelles un consentement explicite distinct, non précoché, informé, horodaté et versionné.
 - [ ] Recueillir séparément le consentement GPS ; ne jamais fusionner les deux consentements.
@@ -694,7 +694,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [ ] Permettre toutes ces modifications à tout moment.
 - [ ] Afficher clairement les informations manquantes qui bloquent le matching.
 - [x] Considérer le profil complet uniquement avec majorité, genre, biographie non vide, au moins un tag et une localisation valide.
-- [ ] Exclure des découvertes les comptes incomplets, inactifs et non vérifiés et rendre leur profil direct indisponible aux autres membres.
+- [x] Exclure des découvertes les comptes incomplets, inactifs et non vérifiés et rendre leur profil direct indisponible aux autres membres.
 - [ ] Ajouter une suppression de compte protégée par mot de passe ou réauthentification récente.
 - [ ] À la suppression, révoquer immédiatement sessions et sockets puis lancer la suppression transactionnelle et l'outbox MinIO.
 - [ ] Ajouter une tâche planifiée avertissant les comptes inactifs depuis deux ans puis les supprimant après 30 jours sans reconnexion.
@@ -710,7 +710,7 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [x] Refuser tout fichier supérieur à 5 Mio ou toute image dépassant 4096 × 4096 pixels.
 - [x] Refuser SVG, GIF animé, bombes de décompression et formats non retenus.
 - [x] Corriger l'orientation, supprimer les métadonnées EXIF et réencoder en WebP avant stockage.
-- [ ] Empêcher un utilisateur sans photo principale de liker un profil.
+- [x] Empêcher un utilisateur sans photo principale de liker un profil.
 
 ### 4.3 Localisation respectueuse du consentement
 
@@ -725,19 +725,19 @@ score = 0.50 × proximite + 0.30 × tags + 0.20 × popularite
 - [ ] Interdire l'autocomplétion directe, le bulk geocoding et l'utilisation de Nominatim par le seed.
 - [ ] Rendre l'endpoint de géocodage configurable afin de pouvoir changer ou désactiver le fournisseur sans mise à jour du frontend.
 - [x] Rendre le catalogue et la saisie manuelle totalement indépendants de Nominatim et d'Internet.
-- [ ] Si le GPS est refusé ou indisponible, demander obligatoirement une ville ou un quartier dans l'interface.
+- [x] Si le GPS est refusé ou indisponible, demander obligatoirement une ville ou un quartier dans l'interface.
 - [x] Empêcher côté serveur le matching tant qu'aucune localisation n'est disponible via la règle de complétude.
 - [x] Permettre via l'API de modifier, remplacer ou supprimer la localisation à tout moment.
-- [ ] Calculer une distance exploitable pour suggestions, tris et filtres.
+- [x] Calculer une distance exploitable pour suggestions, tris et filtres.
 
 ### 4.4 Popularité et historique personnel
 
-- [ ] Implémenter la formule de popularité définie en phase 0.
-- [ ] Recalculer ou dériver le score de façon cohérente.
-- [ ] Rendre le score public et compréhensible.
-- [ ] Créer la page « Qui a consulté mon profil » avec dates.
-- [ ] Créer la page « Qui m'a liké ».
-- [ ] Respecter les blocages dans ces listes.
+- [x] Implémenter la formule de popularité définie en phase 0.
+- [x] Recalculer ou dériver le score de façon cohérente.
+- [x] Rendre le score public et compréhensible.
+- [x] Créer la page « Qui a consulté mon profil » avec dates.
+- [x] Créer la page « Qui m'a liké ».
+- [x] Respecter les blocages dans ces listes.
 
 ---
 

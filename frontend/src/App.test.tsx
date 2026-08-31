@@ -521,4 +521,40 @@ describe('authentication experience', () => {
     expect(await screen.findByText(/aucune conversation/i)).toBeVisible()
     expect(screen.getByRole('heading', { name: 'Messages' })).toBeVisible()
   })
+
+  it('shows visitors and received likes without blocked-profile assumptions', async () => {
+    window.history.replaceState({}, '', '/activity')
+    const responses = [
+      {
+        data: [
+          {
+            visitor: {
+              id: 'profile-1',
+              first_name: 'Ada',
+              age: 31,
+              popularity: 72,
+              location: { city: 'Paris', district: null },
+              main_photo: null,
+            },
+            visited_at: '2026-08-31T12:00:00+00:00',
+          },
+        ],
+      },
+      { data: [] },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(responses.shift()),
+        }),
+      ),
+    )
+    render(<App />)
+    expect(await screen.findByText('Ada, 31')).toBeVisible()
+    fireEvent.click(screen.getByRole('tab', { name: 'Likes reçus' }))
+    expect(screen.getByText(/aucune activité/i)).toBeVisible()
+  })
 })

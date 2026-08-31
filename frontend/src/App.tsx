@@ -10,6 +10,7 @@ import { DiscoveryPage } from './discovery/DiscoveryPage'
 import { PublicProfilePage } from './discovery/PublicProfilePage'
 import { RealtimeNotifications } from './realtime/RealtimeNotifications'
 import { ConversationsPage } from './chat/ConversationsPage'
+import { ActivityPage } from './history/ActivityPage'
 
 function currentPath() {
   return window.location.pathname
@@ -33,6 +34,7 @@ export function App() {
     path === '/discover' ||
     path === '/search' ||
     path === '/messages' ||
+    path === '/activity' ||
     path.startsWith('/profiles/')
 
   return (
@@ -52,6 +54,7 @@ function pageForPath(path: string) {
   if (path === '/discover') return <DiscoveryPage />
   if (path === '/search') return <DiscoveryPage advanced />
   if (path === '/messages') return <ConversationsPage />
+  if (path === '/activity') return <ActivityPage />
   if (path.startsWith('/profiles/')) {
     return <PublicProfilePage profileId={path.slice('/profiles/'.length)} />
   }
